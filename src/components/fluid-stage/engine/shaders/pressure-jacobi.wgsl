@@ -1,0 +1,22 @@
+// One Jacobi relaxation step for the pressure Poisson equation.
+
+@group(0) @binding(0) var<uniform> params: SimParams;
+@group(0) @binding(1) var pressure_in: texture_2d<f32>;
+@group(0) @binding(2) var divergence_in: texture_2d<f32>;
+@group(0) @binding(3) var pressure_out: texture_storage_2d<rgba16float, write>;
+
+@compute @workgroup_size(8, 8)
+fn main(@builtin(global_invocation_id) id: vec3u) {
+  if (f32(id.x) >= params.sim_size.x || f32(id.y) >= params.sim_size.y) {
+    return;
+  }
+  let coord = vec2i(id.xy);
+  let size = params.sim_size;
+  let left = textureLoad(pressure_in, clamp_coord(coord + vec2i(-1, 0), size), 0).x;
+  let right = textureLoad(pressure_in, clamp_coord(coord + vec2i(1, 0), size), 0).x;
+  let up = textureLoad(pressure_in, clamp_coord(coord + vec2i(0, -1), size), 0).x;
+  let down = textureLoad(pressure_in, clamp_coord(coord + vec2i(0, 1), size), 0).x;
+  let divergence = textureLoad(divergence_in, coord, 0).x;
+  let pressure = (left + right + up + down - divergence) * 0.25;
+  textureStore(pressure_out, coord, vec4f(pressure, 0.0, 0.0, 0.0));
+}

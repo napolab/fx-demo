@@ -1,0 +1,33 @@
+node_modules
+dist
+.DS_Store
+*.log*
+*.tsbuildinfo
+coverage/
+
+## Next.js
+.next/
+next-env.d.ts
+
+## OpenNext / Cloudflare
+.open-next/
+.wrangler/
+cloudflare-env.d.ts
+
+## Panda CSS (generated)
+styled-system/
+
+## Env / secrets
+.dev.vars
+.env
+.env.local
+
+## Vitest
+.vitest-attachments/
+
+## Git worktrees
+.worktrees/
+.claude/worktrees/
+
+## Superpowers brainstorm
+.superpowers/

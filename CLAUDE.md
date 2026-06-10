@@ -13,7 +13,7 @@
 - vitest を利用した TDD で実装すること
     - vitest は browser mode が良い気がする
 - husky で commit 時に lint, typecheck を実行すること
-
+- 作業が終わるたびに chrome-dev-tools で UI とアクセシビリティを確認すること
 
 ## coding rules
 

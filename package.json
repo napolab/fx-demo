@@ -1,0 +1,84 @@
+{
+  "name": "fluid-simulation",
+  "version": "0.0.1",
+  "private": true,
+  "description": "WebGPU/WGSL fluid simulation VJ canvas with webcam + mouse interaction",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm run prepare:panda && next dev",
+    "build": "pnpm run prepare:panda && next build",
+    "start": "next start",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "cross-env USE_REMOTE_BINDINGS=true opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "cross-env USE_REMOTE_BINDINGS=true opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "fmt": "pnpm run fmt:oxlint && pnpm run fmt:oxfmt",
+    "fmt:oxlint": "oxlint --fix .",
+    "fmt:oxfmt": "oxfmt --write .",
+    "lint": "oxlint . && oxfmt --check .",
+    "typecheck": "tsgo --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "prepare": "husky && pnpm run prepare:panda",
+    "prepare:panda": "panda codegen --silent",
+    "payload": "payload",
+    "seed": "payload run bin/seed.ts",
+    "payload:migrate": "payload migrate",
+    "payload:migrate:create": "payload migrate:create",
+    "payload:generate-importmap": "payload generate:importmap",
+    "payload:generate-types": "payload generate:types",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "deploy:database:production": "cross-env CLOUDFLARE_ENV=production USE_REMOTE_BINDINGS=true payload migrate"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "^1.16.6",
+    "@payloadcms/db-d1-sqlite": "3.82.1",
+    "@payloadcms/next": "3.82.1",
+    "@payloadcms/richtext-lexical": "3.82.1",
+    "@payloadcms/storage-r2": "3.82.1",
+    "@payloadcms/ui": "3.82.1",
+    "graphql": "^16.14.2",
+    "next": "15.4.11",
+    "payload": "3.82.1",
+    "react": "19.2.1",
+    "react-aria-components": "^1.18.0",
+    "react-dom": "19.2.1",
+    "react-error-boundary": "^6.1.2"
+  },
+  "devDependencies": {
+    "@pandacss/dev": "^1.11.3",
+    "@types/node": "^22.19.20",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@typescript/native-preview": "7.0.0-dev.20251229.1",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/browser": "^4.1.8",
+    "@vitest/browser-playwright": "4.1.8",
+    "@webgpu/types": "^0.1.70",
+    "cross-env": "^10.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
+    "oxfmt": "^0.54.0",
+    "oxlint": "^1.69.0",
+    "oxlint-tsgolint": "^0.23.0",
+    "playwright": "^1.60.0",
+    "vitest": "^4.1.8",
+    "vitest-browser-react": "^2.2.0",
+    "wrangler": "~4.61.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "oxlint --fix",
+      "oxfmt --write"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "unrs-resolver",
+      "@tailwindcss/oxide",
+      "workerd"
+    ]
+  }
+}
