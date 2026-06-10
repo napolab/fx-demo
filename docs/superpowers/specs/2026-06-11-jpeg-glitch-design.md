@@ -77,8 +77,9 @@ src/components/jpeg-glitch-stage/
 
 ## Error handling
 
-- WebGPU 非対応 / カメラ拒否は throw して ErrorBoundary で捕捉、日本語フォールバックメッセージ表示(既存 `/` と同じ方針)。
-- カメラ許可待ちは Suspense fallback。
+- WebGPU 非対応 / カメラ拒否 / device lost は status(`no-webgpu` / `no-camera` / `lost`)としてステージ上に日本語の notice を表示する(既存 fluid-stage と同じ方式)。
+  - throw → ErrorBoundary 方式から変更した理由: headless テスト環境(WebGPU/カメラなし)でもコンポーネントが描画でき、カメラ拒否後もコントロールパネルが操作可能なまま残るため。
+- ErrorBoundary / Suspense は予期しない例外・初期ロードの保険として page 側に残す(既存 `/` と同型)。
 
 ## Testing (TDD, vitest browser mode)
 
