@@ -49,6 +49,34 @@ export const notice = css({
   },
 });
 
+export const cameraPrompt = css({
+  position: 'absolute',
+  top: '4',
+  left: '4',
+  display: 'grid',
+  gap: '2',
+  justifyItems: 'start',
+  color: 'trace.dim',
+  fontSize: 'sm',
+  textAlign: 'left',
+});
+
+export const retryButton = css({
+  padding: '2',
+  paddingInline: '4',
+  color: 'trace.hudText',
+  bg: 'transparent',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'trace.hud',
+  borderRadius: 'sm',
+  fontSize: 'sm',
+  fontFamily: 'mono',
+  cursor: 'pointer',
+  '&[data-hovered]': { color: 'trace.bg', bg: 'trace.hud' },
+  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'trace.line', outlineOffset: '2px' },
+});
+
 export const hint = css({
   position: 'absolute',
   bottom: '5',

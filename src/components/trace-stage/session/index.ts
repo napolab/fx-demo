@@ -13,6 +13,9 @@ import { buildWires } from '../overlay/wires';
 import type { Contour, CoverScale, OverlayFrame, TraceStatus, TrackedBlob, Wire } from '../types';
 
 export type TraceSession = {
+  // Re-attempts webcam acquisition after a permission denial. No-op while
+  // disposed or once a camera is already streaming.
+  retryCamera: () => Promise<void>;
   dispose: () => void;
 };
 
@@ -130,7 +133,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
   const segCanvas = document.createElement('canvas');
   segCanvas.width = SEG_WIDTH;
   segCanvas.height = SEG_HEIGHT;
-  const segContext = segCanvas.getContext('2d', { willReadFrequently: false });
+  const segContext = segCanvas.getContext('2d');
 
   const overlayFrame = (): OverlayFrame => ({
     contours: state.contours,
@@ -218,6 +221,26 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     return [() => window.removeEventListener('keydown', onKeyDown), () => document.removeEventListener('visibilitychange', onVisibility), () => observer.disconnect()];
   };
 
+  // Camera + segmenter acquisition, shared by boot and user-triggered retry.
+  const connectCamera = async (): Promise<void> => {
+    const camera = await acquireCamera();
+    if (state.disposed) {
+      stopStream(camera?.stream);
+      return;
+    }
+    if (camera === undefined) {
+      onStatus('no-camera');
+      return;
+    }
+    state.video = camera.video;
+    state.stream = camera.stream;
+    syncSize();
+
+    state.segmenter = state.segmenter ?? (await createSegmenter());
+    if (state.disposed) return;
+    onStatus(state.segmenter === undefined ? 'model-error' : 'running');
+  };
+
   const boot = async (): Promise<readonly (() => void)[]> => {
     const engine = await createTraceEngine(canvas);
     if (state.disposed) {
@@ -239,28 +262,18 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     if (state.disposed) return cleanups;
     state.overlay.resize(state.canvasWidth, state.canvasHeight);
 
-    const camera = await acquireCamera();
-    if (state.disposed) {
-      stopStream(camera?.stream);
-      return cleanups;
-    }
-    if (camera === undefined) {
-      onStatus('no-camera');
-      return cleanups;
-    }
-    state.video = camera.video;
-    state.stream = camera.stream;
-    syncSize();
-
-    state.segmenter = await createSegmenter();
-    if (state.disposed) return cleanups;
-    onStatus(state.segmenter === undefined ? 'model-error' : 'running');
+    await connectCamera();
     return cleanups;
   };
 
   const cleanupsPromise = boot();
 
   return {
+    async retryCamera() {
+      if (state.disposed || state.video !== undefined || state.engine === undefined) return;
+      onStatus('booting');
+      await connectCamera();
+    },
     dispose() {
       state.disposed = true;
       cancelAnimationFrame(state.rafId);

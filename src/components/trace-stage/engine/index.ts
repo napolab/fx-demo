@@ -111,6 +111,11 @@ export const createTraceEngine = async (canvas: HTMLCanvasElement): Promise<Trac
       device.createBindGroup({ layout: feedbackPipeline.getBindGroupLayout(0), entries: feedbackEntries(trailB) }),
       device.createBindGroup({ layout: feedbackPipeline.getBindGroupLayout(0), entries: feedbackEntries(trailA) }),
     ];
+    // INTENTIONAL: composite reads the trail written THIS frame (same parity
+    // as the feedback write target). The two passes run sequentially in one
+    // command encoder, so this is hazard-free, and it shows the current mask
+    // in the glow without one frame of latency. Do not "fix" to the opposite
+    // parity — that only delays the display by a frame.
     state.compositeGroups = [
       device.createBindGroup({ layout: compositePipeline.getBindGroupLayout(0), entries: compositeEntries(trailA) }),
       device.createBindGroup({ layout: compositePipeline.getBindGroupLayout(0), entries: compositeEntries(trailB) }),
