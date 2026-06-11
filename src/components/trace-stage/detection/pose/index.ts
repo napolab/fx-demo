@@ -4,9 +4,10 @@
 
 import type { PoseLandmark } from '../../types';
 
-// Pinned versions for supply-chain hygiene (same policy as the segmenter).
-const WASM_BASE_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm';
-const MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
+// Self-hosted from public/mediapipe (same policy as the segmenter) — no
+// third-party CDN at runtime.
+const WASM_BASE_URL = '/mediapipe/wasm';
+const MODEL_URL = '/mediapipe/models/pose_landmarker_lite.task';
 const MAX_POSES = 2;
 
 export type PoseDetector = {

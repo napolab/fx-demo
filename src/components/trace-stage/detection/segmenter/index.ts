@@ -1,11 +1,10 @@
 // MediaPipe ImageSegmenter wrapper — the only file that touches the ML runtime.
 // Returns undefined on any load failure so the session can surface 'model-error'.
 
-// Pinned to the exact npm version in package.json so the remote WASM bytes
-// can only change through a reviewed dependency bump (supply-chain hygiene).
-const WASM_BASE_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm';
-// Versioned model path (not /latest/) for the same reason.
-const MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/1/selfie_segmenter.tflite';
+// Self-hosted from public/mediapipe (WASM copied from the pinned npm package,
+// model downloaded once and committed) — no third-party CDN at runtime.
+const WASM_BASE_URL = '/mediapipe/wasm';
+const MODEL_URL = '/mediapipe/models/selfie_segmenter.tflite';
 
 export type Segmenter = {
   // Returns the person confidence mask (0..1 floats, source dimensions), or
