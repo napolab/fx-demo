@@ -24,13 +24,13 @@ const COLOR_LABEL_BG = '#0e131c';
 // White on labelBg ≈ 18:1 — clears WCAG 2.1 AA with room to spare.
 const COLOR_LABEL_TEXT = '#ffffff';
 const COLOR_WIRE = '#bfbfbf';
-// trace.marker — the red node dot at every box center.
-const COLOR_MARKER = '#ff2a2a';
+// trace.marker — muted brick red for the node dot at every box center.
+const COLOR_MARKER = '#b3423b';
 const HISTORY_MAX_ALPHA = 110;
 const BOX_STROKE_WEIGHT = 2.5;
 const MARKER_DIAMETER_PX = 7;
-const WIRE_WEIGHT = 0.6;
-const WIRE_MAX_ALPHA = 90;
+const WIRE_WEIGHT = 0.75;
+const WIRE_MAX_ALPHA = 150;
 const LABEL_HEIGHT_PX = 18;
 const LABEL_PAD_X = 5;
 const LABEL_BASELINE_OFFSET = 13;
@@ -66,7 +66,7 @@ const drawFrame = (p: P5, frame: OverlayFrame): void => {
   p.strokeWeight(1.5);
   for (const contour of frame.contours) drawContour(p, contour, frame);
 
-  // Faint wires between box-center nodes (the red markers are the nodes).
+  // Wires between box-center nodes, in the standard wire color/weight.
   for (const wire of frame.wires) {
     const a = toScreenPx(p, wire.a, frame);
     const b = toScreenPx(p, wire.b, frame);
