@@ -7,21 +7,24 @@ export type Point = { x: number; y: number };
 // Closed polyline traced around a silhouette (first point NOT repeated at the end).
 export type Contour = readonly Point[];
 
-// Connected component found in a single mask frame (no identity yet).
-export type RawBlob = {
+// One MediaPipe pose landmark in normalized UV with its visibility score.
+export type PoseLandmark = { x: number; y: number; visibility: number };
+
+// Semantic body part tracked as its own HUD box. `_L`/`_R` follow MediaPipe's
+// convention (the person's own left/right).
+export type BodyPart = 'face' | 'hand_L' | 'hand_R' | 'arm_L' | 'arm_R' | 'torso' | 'leg_L' | 'leg_R';
+
+// Labeled tracking box around one body part's landmarks (normalized UV).
+export type PartBox = {
+  part: BodyPart;
   minX: number;
   minY: number;
   maxX: number;
   maxY: number;
-  // Centroid in normalized UV.
+  // Box center in normalized UV.
   cx: number;
   cy: number;
-  // Area as a fraction of the full frame (0..1).
-  area: number;
 };
-
-// Blob with a frame-to-frame stable identity.
-export type TrackedBlob = RawBlob & { id: number };
 
 // A plexus line between two detected points; strength 0..1 drives opacity.
 export type Wire = { a: Point; b: Point; strength: number };
@@ -42,7 +45,7 @@ export type OverlayFrame = {
   contours: readonly Contour[];
   // Oldest → newest snapshots of past contours, drawn with rising opacity.
   history: readonly (readonly Contour[])[];
-  blobs: readonly TrackedBlob[];
+  parts: readonly PartBox[];
   wires: readonly Wire[];
   coverScale: CoverScale;
 };

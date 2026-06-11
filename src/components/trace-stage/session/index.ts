@@ -3,15 +3,16 @@
 // history ring and disposal. The hook only mounts/unmounts it. Mirrors
 // fluid-stage/session deliberately.
 
-import { findBlobs, trackBlobs } from '../detection/blob-tracker';
 import { traceContours } from '../detection/marching-squares';
+import { buildPartBoxes } from '../detection/part-boxes';
+import { createPoseDetector, type PoseDetector } from '../detection/pose';
 import { createSegmenter, type Segmenter } from '../detection/segmenter';
 import { simplify } from '../detection/simplify';
 import { createTraceEngine, type TraceEngine } from '../engine';
 import { coverScale } from '../math';
 import { createOverlay, type OverlayHandle } from '../overlay/sketch';
 import { buildWires } from '../overlay/wires';
-import type { Contour, CoverScale, OverlayFrame, TraceStatus, TrackedBlob, Wire } from '../types';
+import type { Contour, CoverScale, OverlayFrame, PartBox, TraceStatus, Wire } from '../types';
 
 export type TraceSession = {
   // Re-attempts webcam acquisition after a permission denial. No-op while
@@ -26,8 +27,8 @@ export type TraceSession = {
 const SEG_WIDTH = 320;
 const SEG_HEIGHT = 180;
 const MASK_THRESHOLD = 0.5;
-// One bbox per connected segment (person / detached region), not per tile.
-const MIN_BLOB_CELLS = 60;
+// Semantic part boxes (face / hands / arms / torso / legs) from pose landmarks.
+const PART_BOX_OPTIONS = { minVisibility: 0.55, paddingX: 0.018, paddingY: 0.024 };
 const SIMPLIFY_EPSILON = 0.006;
 const CONTOUR_SAMPLE_STRIDE = 6;
 const WIRE_OPTIONS = { maxDistance: 0.22, maxWires: 64 };
@@ -40,6 +41,7 @@ type SessionState = {
   disposed: boolean;
   engine: TraceEngine | undefined;
   segmenter: Segmenter | undefined;
+  pose: PoseDetector | undefined;
   overlay: OverlayHandle | undefined;
   video: HTMLVideoElement | undefined;
   stream: MediaStream | undefined;
@@ -53,9 +55,8 @@ type SessionState = {
   cover: CoverScale;
   contours: readonly Contour[];
   history: readonly (readonly Contour[])[];
-  blobs: readonly TrackedBlob[];
+  parts: readonly PartBox[];
   wires: readonly Wire[];
-  nextBlobId: number;
   objectURL: string | undefined;
 };
 
@@ -105,9 +106,9 @@ const watchDeviceLost = async (engine: TraceEngine, state: SessionState, onStatu
   if (!state.disposed && info.reason !== 'destroyed') onStatus('lost');
 };
 
-// Sample contour vertices (every Nth) plus blob centroids as wire anchors.
-const wireAnchors = (contours: readonly Contour[], blobs: readonly TrackedBlob[]): readonly { x: number; y: number }[] => [
-  ...blobs.map((blob) => ({ x: blob.cx, y: blob.cy })),
+// Sample contour vertices (every Nth) plus part-box centers as wire anchors.
+const wireAnchors = (contours: readonly Contour[], parts: readonly PartBox[]): readonly { x: number; y: number }[] => [
+  ...parts.map((part) => ({ x: part.cx, y: part.cy })),
   ...contours.flatMap((contour) => contour.filter((_, index) => index % CONTOUR_SAMPLE_STRIDE === 0)),
 ];
 
@@ -116,6 +117,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     disposed: false,
     engine: undefined,
     segmenter: undefined,
+    pose: undefined,
     overlay: undefined,
     video: undefined,
     stream: undefined,
@@ -129,9 +131,8 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     cover: { x: 1, y: 1 },
     contours: [],
     history: [],
-    blobs: [],
+    parts: [],
     wires: [],
-    nextBlobId: 0,
     objectURL: undefined,
   };
 
@@ -143,7 +144,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
   const overlayFrame = (): OverlayFrame => ({
     contours: state.contours,
     history: state.history,
-    blobs: state.blobs,
+    parts: state.parts,
     wires: state.wires,
     coverScale: state.cover,
   });
@@ -156,10 +157,9 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
 
     const raw = traceContours(mask, SEG_WIDTH, SEG_HEIGHT, MASK_THRESHOLD);
     state.contours = raw.map((contour) => simplify(contour, SIMPLIFY_EPSILON));
-    const tracked = trackBlobs(state.blobs, findBlobs(mask, SEG_WIDTH, SEG_HEIGHT, MASK_THRESHOLD, MIN_BLOB_CELLS), state.nextBlobId);
-    state.blobs = tracked.blobs;
-    state.nextBlobId = tracked.nextId;
-    state.wires = buildWires(wireAnchors(state.contours, state.blobs), WIRE_OPTIONS);
+    const poses = state.pose?.detectFrame(segCanvas, timestampMs) ?? [];
+    state.parts = poses.flatMap((pose) => buildPartBoxes(pose, PART_BOX_OPTIONS));
+    state.wires = buildWires(wireAnchors(state.contours, state.parts), WIRE_OPTIONS);
 
     if (state.frameCount % HISTORY_EVERY_N_FRAMES === 0 && state.contours.length > 0) {
       state.history = [...state.history, state.contours].slice(-HISTORY_MAX);
@@ -237,6 +237,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     syncSize();
 
     state.segmenter = state.segmenter ?? (await createSegmenter());
+    state.pose = state.pose ?? (await createPoseDetector());
     if (state.disposed) return;
     onStatus(state.segmenter === undefined ? 'model-error' : 'running');
   };
@@ -294,6 +295,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     syncSize();
 
     state.segmenter = state.segmenter ?? (await createSegmenter());
+    state.pose = state.pose ?? (await createPoseDetector());
     if (state.disposed) return;
     onStatus(state.segmenter === undefined ? 'model-error' : 'running');
   };
@@ -324,6 +326,7 @@ const disposeAsync = async (cleanupsPromise: Promise<readonly (() => void)[]>, s
   stopStream(state.stream);
   if (state.objectURL !== undefined) URL.revokeObjectURL(state.objectURL);
   state.segmenter?.close();
+  state.pose?.close();
   state.overlay?.remove();
   state.engine?.destroy();
 };

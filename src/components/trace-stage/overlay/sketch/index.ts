@@ -4,7 +4,7 @@
 
 import { contentToScreen } from '../../math';
 import type { Contour, OverlayFrame, Point } from '../../types';
-import { formatBlobLabel, formatStatsLine } from '../hud';
+import { formatPartLabel, formatStatsLine } from '../hud';
 
 import type P5 from 'p5';
 
@@ -67,23 +67,23 @@ const drawFrame = (p: P5, frame: OverlayFrame): void => {
     p.point(b.x, b.y);
   }
 
-  // Blob bboxes + labels, one per tracked segment.
+  // Part boxes + labels: face / hands / arms / torso / legs per detected pose.
   const vertexCount = frame.contours.reduce((sum, contour) => sum + contour.length, 0);
-  for (const blob of frame.blobs) {
-    const min = toScreenPx(p, { x: blob.minX, y: blob.minY }, frame);
-    const max = toScreenPx(p, { x: blob.maxX, y: blob.maxY }, frame);
+  for (const part of frame.parts) {
+    const min = toScreenPx(p, { x: part.minX, y: part.minY }, frame);
+    const max = toScreenPx(p, { x: part.maxX, y: part.maxY }, frame);
     p.noFill();
     p.stroke(COLOR_HUD);
     p.strokeWeight(1);
     p.rect(min.x, min.y, max.x - min.x, max.y - min.y);
     p.noStroke();
     p.fill(COLOR_HUD_TEXT);
-    p.text(formatBlobLabel(blob), min.x, min.y - LABEL_OFFSET_PX);
+    p.text(formatPartLabel(part), min.x, min.y - LABEL_OFFSET_PX);
   }
 
   p.noStroke();
   p.fill(COLOR_LINE);
-  p.text(formatStatsLine(frame.blobs.length, vertexCount), p.width - 220, p.height - 14);
+  p.text(formatStatsLine(frame.parts.length, vertexCount), p.width - 220, p.height - 14);
 };
 
 export const createOverlay = async (container: HTMLElement, getFrame: () => OverlayFrame): Promise<OverlayHandle> => {

@@ -1,21 +1,21 @@
 import { describe, expect, test } from 'vitest';
 
-import { formatBlobLabel, formatStatsLine } from '.';
+import { formatPartLabel, formatStatsLine } from '.';
 
-describe('formatBlobLabel', () => {
-  test('formats id, centroid and area in fixed widths', () => {
-    const blob = { id: 3, minX: 0.1, minY: 0.1, maxX: 0.5, maxY: 0.9, cx: 0.4214, cy: 0.1832, area: 0.0315 };
-    expect(formatBlobLabel(blob)).toBe('blob_03 x:0.421 y:0.183 a:0.032');
+describe('formatPartLabel', () => {
+  test('formats the part name and box center in fixed widths', () => {
+    const box = { part: 'face' as const, minX: 0.4, minY: 0.1, maxX: 0.6, maxY: 0.3, cx: 0.5123, cy: 0.2046 };
+    expect(formatPartLabel(box)).toBe('face x:0.512 y:0.205');
   });
 
-  test('pads double-digit ids without truncation', () => {
-    const blob = { id: 12, minX: 0, minY: 0, maxX: 1, maxY: 1, cx: 0.5, cy: 0.5, area: 1 };
-    expect(formatBlobLabel(blob)).toBe('blob_12 x:0.500 y:0.500 a:1.000');
+  test('keeps the left/right suffix verbatim', () => {
+    const box = { part: 'hand_L' as const, minX: 0, minY: 0, maxX: 1, maxY: 1, cx: 0.5, cy: 0.5 };
+    expect(formatPartLabel(box)).toBe('hand_L x:0.500 y:0.500');
   });
 });
 
 describe('formatStatsLine', () => {
-  test('summarizes blob and vertex counts', () => {
-    expect(formatStatsLine(2, 148)).toBe('tracking: 2 blobs / 148 verts');
+  test('summarizes part and vertex counts', () => {
+    expect(formatStatsLine(8, 148)).toBe('tracking: 8 parts / 148 verts');
   });
 });
