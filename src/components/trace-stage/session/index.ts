@@ -30,8 +30,9 @@ const MASK_THRESHOLD = 0.5;
 // Semantic part boxes (face / hands / arms / torso / legs) from pose landmarks.
 const PART_BOX_OPTIONS = { minVisibility: 0.55, paddingX: 0.018, paddingY: 0.024 };
 const SIMPLIFY_EPSILON = 0.006;
-const CONTOUR_SAMPLE_STRIDE = 6;
-const WIRE_OPTIONS = { maxDistance: 0.22, maxWires: 64 };
+// Wires connect part boxes to each other only (≤8 anchors per pose), so the
+// reach is wide enough to span face↔hand↔leg distances.
+const WIRE_OPTIONS = { maxDistance: 0.5, maxWires: 32 };
 const HISTORY_EVERY_N_FRAMES = 3;
 const HISTORY_MAX = 10;
 const RESIZE_DEBOUNCE_MS = 180;
@@ -106,11 +107,8 @@ const watchDeviceLost = async (engine: TraceEngine, state: SessionState, onStatu
   if (!state.disposed && info.reason !== 'destroyed') onStatus('lost');
 };
 
-// Sample contour vertices (every Nth) plus part-box centers as wire anchors.
-const wireAnchors = (contours: readonly Contour[], parts: readonly PartBox[]): readonly { x: number; y: number }[] => [
-  ...parts.map((part) => ({ x: part.cx, y: part.cy })),
-  ...contours.flatMap((contour) => contour.filter((_, index) => index % CONTOUR_SAMPLE_STRIDE === 0)),
-];
+// Wires run between part-box centers only — no contour anchors.
+const wireAnchors = (parts: readonly PartBox[]): readonly { x: number; y: number }[] => parts.map((part) => ({ x: part.cx, y: part.cy }));
 
 export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: HTMLElement, onStatus: (status: TraceStatus) => void): TraceSession => {
   const state: SessionState = {
@@ -159,7 +157,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     state.contours = raw.map((contour) => simplify(contour, SIMPLIFY_EPSILON));
     const poses = state.pose?.detectFrame(segCanvas, timestampMs) ?? [];
     state.parts = poses.flatMap((pose) => buildPartBoxes(pose, PART_BOX_OPTIONS));
-    state.wires = buildWires(wireAnchors(state.contours, state.parts), WIRE_OPTIONS);
+    state.wires = buildWires(wireAnchors(state.parts), WIRE_OPTIONS);
 
     if (state.frameCount % HISTORY_EVERY_N_FRAMES === 0 && state.contours.length > 0) {
       state.history = [...state.history, state.contours].slice(-HISTORY_MAX);
