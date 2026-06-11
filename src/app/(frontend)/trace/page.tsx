@@ -8,11 +8,11 @@ import type { Metadata, Viewport } from 'next';
 
 export const metadata: Metadata = {
   title: 'Trace — body wireframe tracking',
-  description: 'WebGPU/WGSL + p5.js のトレース & ブロブトラッキング FX。カメラに映る身体の輪郭が緑のワイヤーフレームでトレースされ、残像とトラッキング HUD が重なります。',
+  description: 'WebGPU/WGSL + p5.js のトレース & ブロブトラッキング FX。カメラに映る身体の輪郭がモノクロのワイヤーフレームでトレースされ、残像とトラッキング HUD が重なります。',
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0b0e0b',
+  themeColor: '#0a0a0a',
 };
 
 const main = css({ minHeight: '100dvh', bg: 'trace.bg' });

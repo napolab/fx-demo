@@ -14,10 +14,11 @@ export type OverlayHandle = {
 };
 
 // Mirrors the panda `trace.*` tokens — p5 needs raw values at draw time.
-const COLOR_LINE = '#7cfc00';
-const COLOR_HUD = '#39c5cf';
-const COLOR_HUD_TEXT = '#9fe8ee';
-const COLOR_WIRE = '#cfe8cf';
+// All line work is monochrome by design; hierarchy comes from brightness.
+const COLOR_LINE = '#f2f2f2';
+const COLOR_HUD = '#8c8c8c';
+const COLOR_HUD_TEXT = '#d4d4d4';
+const COLOR_WIRE = '#bfbfbf';
 const HISTORY_MAX_ALPHA = 110;
 const LABEL_OFFSET_PX = 6;
 
@@ -42,7 +43,7 @@ const drawFrame = (p: P5, frame: OverlayFrame): void => {
   // Echo trail: oldest faintest.
   for (const [index, snapshot] of frame.history.entries()) {
     const alpha = ((index + 1) / (frame.history.length + 1)) * HISTORY_MAX_ALPHA;
-    p.stroke(124, 252, 0, alpha);
+    p.stroke(242, 242, 242, alpha);
     p.strokeWeight(1);
     for (const contour of snapshot) drawContour(p, contour, frame);
   }
@@ -56,7 +57,7 @@ const drawFrame = (p: P5, frame: OverlayFrame): void => {
   for (const wire of frame.wires) {
     const a = toScreenPx(p, wire.a, frame);
     const b = toScreenPx(p, wire.b, frame);
-    p.stroke(207, 232, 207, wire.strength * 150);
+    p.stroke(191, 191, 191, wire.strength * 150);
     p.strokeWeight(0.75);
     p.line(a.x, a.y, b.x, b.y);
     p.stroke(COLOR_WIRE);

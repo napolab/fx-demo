@@ -51,7 +51,6 @@ type SessionState = {
   blobs: readonly TrackedBlob[];
   wires: readonly Wire[];
   nextBlobId: number;
-  maskBytes: Uint8Array<ArrayBuffer>;
 };
 
 type CameraHandles = { video: HTMLVideoElement; stream: MediaStream };
@@ -127,7 +126,6 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     blobs: [],
     wires: [],
     nextBlobId: 0,
-    maskBytes: new Uint8Array(SEG_WIDTH * SEG_HEIGHT) as Uint8Array<ArrayBuffer>,
   };
 
   const segCanvas = document.createElement('canvas');
@@ -148,11 +146,6 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     segContext.drawImage(state.video, 0, 0, SEG_WIDTH, SEG_HEIGHT);
     const mask = state.segmenter.segmentFrame(segCanvas, timestampMs);
     if (mask === undefined || mask.length !== SEG_WIDTH * SEG_HEIGHT) return;
-
-    for (const [index, value] of mask.entries()) {
-      state.maskBytes[index] = Math.min(255, Math.max(0, Math.round(value * 255)));
-    }
-    state.engine?.updateMask(state.maskBytes, SEG_WIDTH, SEG_HEIGHT);
 
     const raw = traceContours(mask, SEG_WIDTH, SEG_HEIGHT, MASK_THRESHOLD);
     state.contours = raw.map((contour) => simplify(contour, SIMPLIFY_EPSILON));

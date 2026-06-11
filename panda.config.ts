@@ -16,15 +16,17 @@ export default defineConfig({
             dim: { value: 'rgba(237, 242, 247, 0.62)' },
           },
           trace: {
-            // CV-green stage: near-black ground, lime trace lines, cyan HUD.
-            // hudText on bg is ~12:1, text on bg ~15:1 — clears WCAG 2.1 AA.
-            bg: { value: '#0b0e0b' },
-            line: { value: '#7cfc00' },
-            hud: { value: '#39c5cf' },
-            hudText: { value: '#9fe8ee' },
-            wire: { value: '#cfe8cf' },
-            text: { value: '#edf2f7' },
-            dim: { value: 'rgba(207, 232, 207, 0.62)' },
+            // Monochrome stage: neutral near-black ground, white line work;
+            // hierarchy comes from brightness, not hue.
+            // hudText on bg ≈ 13:1, text on bg ≈ 16:1 — clears WCAG 2.1 AA;
+            // hud (non-text bbox stroke) ≈ 5.8:1 clears the 3:1 non-text bar.
+            bg: { value: '#0a0a0a' },
+            line: { value: '#f2f2f2' },
+            hud: { value: '#8c8c8c' },
+            hudText: { value: '#d4d4d4' },
+            wire: { value: '#bfbfbf' },
+            text: { value: '#ededed' },
+            dim: { value: 'rgba(237, 237, 237, 0.62)' },
           },
         },
       },

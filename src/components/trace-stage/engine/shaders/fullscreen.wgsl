@@ -5,8 +5,8 @@ struct Params {
   resolution: vec2f,
   time: f32,
   cameraReady: f32,
-  decay: f32,
   pad0: f32,
+  pad1: f32,
 };
 
 struct VSOut {
