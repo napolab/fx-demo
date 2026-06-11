@@ -3,10 +3,9 @@
 // a soft dependency (trace lines keep working without part boxes).
 
 import type { PoseLandmark } from '../../types';
+import { loadVisionFileset } from '../vision-fileset';
 
-// Self-hosted from public/mediapipe (same policy as the segmenter) — no
-// third-party CDN at runtime.
-const WASM_BASE_URL = '/mediapipe/wasm';
+// Self-hosted model (same policy as the segmenter).
 const MODEL_URL = '/mediapipe/models/pose_landmarker_lite.task';
 const MAX_POSES = 2;
 
@@ -19,8 +18,8 @@ export type PoseDetector = {
 
 export const createPoseDetector = async (): Promise<PoseDetector | undefined> => {
   try {
-    const { FilesetResolver, PoseLandmarker } = await import('@mediapipe/tasks-vision');
-    const fileset = await FilesetResolver.forVisionTasks(WASM_BASE_URL);
+    const { PoseLandmarker } = await import('@mediapipe/tasks-vision');
+    const fileset = await loadVisionFileset();
     const landmarker = await PoseLandmarker.createFromOptions(fileset, {
       baseOptions: { modelAssetPath: MODEL_URL, delegate: 'GPU' },
       runningMode: 'VIDEO',

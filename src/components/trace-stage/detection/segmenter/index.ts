@@ -1,9 +1,9 @@
-// MediaPipe ImageSegmenter wrapper — the only file that touches the ML runtime.
+// MediaPipe ImageSegmenter wrapper.
 // Returns undefined on any load failure so the session can surface 'model-error'.
 
-// Self-hosted from public/mediapipe (WASM copied from the pinned npm package,
-// model downloaded once and committed) — no third-party CDN at runtime.
-const WASM_BASE_URL = '/mediapipe/wasm';
+import { loadVisionFileset } from '../vision-fileset';
+
+// Self-hosted model (downloaded once from the versioned path and committed).
 const MODEL_URL = '/mediapipe/models/selfie_segmenter.tflite';
 
 export type Segmenter = {
@@ -15,8 +15,8 @@ export type Segmenter = {
 
 export const createSegmenter = async (): Promise<Segmenter | undefined> => {
   try {
-    const { FilesetResolver, ImageSegmenter } = await import('@mediapipe/tasks-vision');
-    const fileset = await FilesetResolver.forVisionTasks(WASM_BASE_URL);
+    const { ImageSegmenter } = await import('@mediapipe/tasks-vision');
+    const fileset = await loadVisionFileset();
     const segmenter = await ImageSegmenter.createFromOptions(fileset, {
       baseOptions: { modelAssetPath: MODEL_URL, delegate: 'GPU' },
       runningMode: 'VIDEO',
