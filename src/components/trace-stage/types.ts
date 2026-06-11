@@ -32,8 +32,8 @@ export type CoverScale = { x: number; y: number };
 export type TraceFrameInput = {
   dtSeconds: number;
   timeSeconds: number;
-  // 1 when the webcam texture carries live video, 0 before permission.
-  cameraReady: number;
+  // 1 when the source texture carries live video (webcam or file), 0 before.
+  sourceReady: number;
   coverScale: CoverScale;
 };
 

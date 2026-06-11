@@ -1,9 +1,9 @@
 // Framework-free WebGPU engine for the trace stage: a single fullscreen
-// composite pass that cover-fits the camera into the viewport and grades it
-// into a dim monochrome stage (scanlines, grain, vignette). All line work —
-// contours, wires, bboxes, HUD — is drawn by the p5 overlay above this canvas.
-// The session feeds one TraceFrameInput per RAF; the camera arrives as a
-// texture via updateCamera.
+// composite pass that cover-fits the video source (webcam or file) into the
+// viewport and grades it (dim, scanlines, grain, vignette) with no feedback
+// or accumulation. All line work — contours, wires, bboxes, HUD — is drawn by
+// the p5 overlay above this canvas. The session feeds one TraceFrameInput per
+// RAF; the source arrives as a texture via updateVideo.
 
 import type { TraceFrameInput } from '../types';
 import compositeSource from './shaders/composite.wgsl';
@@ -12,13 +12,13 @@ import fullscreenSource from './shaders/fullscreen.wgsl';
 export type TraceEngine = {
   frame: (input: TraceFrameInput) => void;
   resize: (cssWidth: number, cssHeight: number, devicePixelRatio: number) => void;
-  updateCamera: (video: HTMLVideoElement) => void;
+  updateVideo: (video: HTMLVideoElement) => void;
   lost: Promise<GPUDeviceLostInfo>;
   destroy: () => void;
 };
 
 const MAX_DPR = 2;
-// coverScale(vec2) + resolution(vec2) + time + cameraReady + 2 pads = 8 floats.
+// coverScale(vec2) + resolution(vec2) + time + sourceReady + 2 pads = 8 floats.
 const PARAMS_FLOAT_COUNT = 8;
 
 type EngineState = {
@@ -78,7 +78,7 @@ export const createTraceEngine = async (canvas: HTMLCanvasElement): Promise<Trac
   return {
     frame(input) {
       if (state.destroyed || state.bindGroup === undefined) return;
-      uniformData.set([input.coverScale.x, input.coverScale.y, canvas.width, canvas.height, input.timeSeconds, input.cameraReady, 0, 0]);
+      uniformData.set([input.coverScale.x, input.coverScale.y, canvas.width, canvas.height, input.timeSeconds, input.sourceReady, 0, 0]);
       device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
       const encoder = device.createCommandEncoder();
@@ -97,7 +97,7 @@ export const createTraceEngine = async (canvas: HTMLCanvasElement): Promise<Trac
       target.width = Math.max(1, Math.floor(cssWidth * dpr));
       target.height = Math.max(1, Math.floor(cssHeight * dpr));
     },
-    updateCamera(video) {
+    updateVideo(video) {
       if (video.videoWidth === 0 || state.destroyed) return;
       if (state.camera.width !== video.videoWidth || state.camera.height !== video.videoHeight) {
         state.camera.destroy();

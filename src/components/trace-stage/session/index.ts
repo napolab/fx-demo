@@ -1,8 +1,10 @@
-// DOM/GPU/ML session glue (no React): owns the RAF loop, webcam, MediaPipe
-// segmentation, detection pipeline, history ring and disposal. The hook only
-// mounts/unmounts it. Mirrors fluid-stage/session deliberately.
+// DOM/GPU/ML session glue (no React): owns the RAF loop, the video source
+// (webcam or user-provided file), MediaPipe segmentation, detection pipeline,
+// history ring and disposal. The hook only mounts/unmounts it. Mirrors
+// fluid-stage/session deliberately.
 
-import { findBlobs, trackBlobs } from '../detection/blob-tracker';
+import { trackBlobs } from '../detection/blob-tracker';
+import { findGridBlobs } from '../detection/grid-blobs';
 import { traceContours } from '../detection/marching-squares';
 import { createSegmenter, type Segmenter } from '../detection/segmenter';
 import { simplify } from '../detection/simplify';
@@ -14,18 +16,23 @@ import type { Contour, CoverScale, OverlayFrame, TraceStatus, TrackedBlob, Wire 
 
 export type TraceSession = {
   // Re-attempts webcam acquisition after a permission denial. No-op while
-  // disposed or once a camera is already streaming.
+  // disposed or once a source is already playing.
   retryCamera: () => Promise<void>;
+  // Switches the source to a user-provided video file (webm/mp4), replacing
+  // the webcam stream if one is active.
+  loadVideoFile: (file: File) => Promise<void>;
   dispose: () => void;
 };
 
 const SEG_WIDTH = 320;
 const SEG_HEIGHT = 180;
 const MASK_THRESHOLD = 0.5;
-const MIN_BLOB_CELLS = 60;
+// Fine tracking grid: each occupied tile gets its own tight bbox, so a body
+// breaks into many small boxes (≈27×22px tiles on the 320×180 mask).
+const GRID_OPTIONS = { cols: 12, rows: 8, minCells: 40 };
 const SIMPLIFY_EPSILON = 0.006;
 const CONTOUR_SAMPLE_STRIDE = 6;
-const WIRE_OPTIONS = { maxDistance: 0.22, maxWires: 48 };
+const WIRE_OPTIONS = { maxDistance: 0.22, maxWires: 64 };
 const HISTORY_EVERY_N_FRAMES = 3;
 const HISTORY_MAX = 10;
 const RESIZE_DEBOUNCE_MS = 180;
@@ -51,6 +58,7 @@ type SessionState = {
   blobs: readonly TrackedBlob[];
   wires: readonly Wire[];
   nextBlobId: number;
+  objectURL: string | undefined;
 };
 
 type CameraHandles = { video: HTMLVideoElement; stream: MediaStream };
@@ -126,6 +134,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     blobs: [],
     wires: [],
     nextBlobId: 0,
+    objectURL: undefined,
   };
 
   const segCanvas = document.createElement('canvas');
@@ -149,7 +158,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
 
     const raw = traceContours(mask, SEG_WIDTH, SEG_HEIGHT, MASK_THRESHOLD);
     state.contours = raw.map((contour) => simplify(contour, SIMPLIFY_EPSILON));
-    const tracked = trackBlobs(state.blobs, findBlobs(mask, SEG_WIDTH, SEG_HEIGHT, MASK_THRESHOLD, MIN_BLOB_CELLS), state.nextBlobId);
+    const tracked = trackBlobs(state.blobs, findGridBlobs(mask, SEG_WIDTH, SEG_HEIGHT, MASK_THRESHOLD, GRID_OPTIONS), state.nextBlobId);
     state.blobs = tracked.blobs;
     state.nextBlobId = tracked.nextId;
     state.wires = buildWires(wireAnchors(state.contours, state.blobs), WIRE_OPTIONS);
@@ -168,13 +177,13 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     state.frameCount = state.frameCount + 1;
 
     if (state.video !== undefined) {
-      state.engine.updateCamera(state.video);
+      state.engine.updateVideo(state.video);
       detect(timestampMs);
     }
     state.engine.frame({
       dtSeconds,
       timeSeconds: state.timeSeconds,
-      cameraReady: state.video !== undefined ? 1 : 0,
+      sourceReady: state.video !== undefined ? 1 : 0,
       coverScale: state.cover,
     });
     state.rafId = requestAnimationFrame(tick);
@@ -259,6 +268,38 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     return cleanups;
   };
 
+  // Swap the active source to a local video file. The webcam stream (if any)
+  // is stopped; the file loops like VJ footage.
+  const loadVideoFile = async (file: File): Promise<void> => {
+    if (state.disposed || state.engine === undefined) return;
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.muted = true;
+    video.playsInline = true;
+    video.loop = true;
+    video.src = url;
+    try {
+      await video.play();
+    } catch {
+      URL.revokeObjectURL(url);
+      return;
+    }
+    if (state.disposed) {
+      URL.revokeObjectURL(url);
+      return;
+    }
+    stopStream(state.stream);
+    state.stream = undefined;
+    if (state.objectURL !== undefined) URL.revokeObjectURL(state.objectURL);
+    state.objectURL = url;
+    state.video = video;
+    syncSize();
+
+    state.segmenter = state.segmenter ?? (await createSegmenter());
+    if (state.disposed) return;
+    onStatus(state.segmenter === undefined ? 'model-error' : 'running');
+  };
+
   const cleanupsPromise = boot();
 
   return {
@@ -267,6 +308,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
       onStatus('booting');
       await connectCamera();
     },
+    loadVideoFile,
     dispose() {
       state.disposed = true;
       cancelAnimationFrame(state.rafId);
@@ -282,6 +324,7 @@ const disposeAsync = async (cleanupsPromise: Promise<readonly (() => void)[]>, s
     cleanup();
   }
   stopStream(state.stream);
+  if (state.objectURL !== undefined) URL.revokeObjectURL(state.objectURL);
   state.segmenter?.close();
   state.overlay?.remove();
   state.engine?.destroy();

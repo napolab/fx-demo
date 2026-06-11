@@ -4,7 +4,7 @@ struct Params {
   coverScale: vec2f,
   resolution: vec2f,
   time: f32,
-  cameraReady: f32,
+  sourceReady: f32,
   pad0: f32,
   pad1: f32,
 };

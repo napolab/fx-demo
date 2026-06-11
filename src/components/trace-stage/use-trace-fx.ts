@@ -11,6 +11,7 @@ import type { TraceStatus } from './types';
 export type TraceFx = {
   status: TraceStatus;
   retryCamera: () => Promise<void>;
+  loadVideoFile: (file: File) => Promise<void>;
 };
 
 export const useTraceFx = (canvasRef: RefObject<HTMLCanvasElement | null>, overlayRef: RefObject<HTMLDivElement | null>): TraceFx => {
@@ -36,5 +37,9 @@ export const useTraceFx = (canvasRef: RefObject<HTMLCanvasElement | null>, overl
     await sessionRef.current?.retryCamera();
   }, []);
 
-  return useMemo(() => ({ status, retryCamera }), [status, retryCamera]);
+  const loadVideoFile = useCallback(async (file: File) => {
+    await sessionRef.current?.loadVideoFile(file);
+  }, []);
+
+  return useMemo(() => ({ status, retryCamera, loadVideoFile }), [status, retryCamera, loadVideoFile]);
 };

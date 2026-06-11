@@ -5,8 +5,8 @@
 // labels and plexus wires render on a transparent p5 canvas above the WGSL
 // graded video layer.
 
-import { useEffect, useRef, useState } from 'react';
-import { Button } from 'react-aria-components';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Button, FileTrigger } from 'react-aria-components';
 
 import * as styles from './styles.css';
 import type { TraceStatus } from './types';
@@ -51,14 +51,28 @@ const useFadeOut = (delayMs: number): boolean => {
 export const TraceStage = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
-  const { status, retryCamera } = useTraceFx(canvasRef, overlayRef);
+  const { status, retryCamera, loadVideoFile } = useTraceFx(canvasRef, overlayRef);
   const hintVisible = useFadeOut(HINT_VISIBLE_MS);
   const notice = noticeText(status);
 
+  const handleSelectVideo = useCallback(
+    async (files: FileList | null) => {
+      const file = files?.item(0);
+      if (file === null || file === undefined) return;
+      await loadVideoFile(file);
+    },
+    [loadVideoFile],
+  );
+
   return (
     <div className={styles.root} data-status={status}>
-      <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label="輪郭トレース。カメラに映る身体の輪郭がワイヤーフレームでトレースされます。" />
+      <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label="輪郭トレース。映像に映る身体の輪郭がワイヤーフレームでトレースされます。" />
       <div ref={overlayRef} className={styles.overlay} aria-hidden="true" />
+      <div className={styles.sourceRoot}>
+        <FileTrigger acceptedFileTypes={['video/mp4', 'video/webm']} onSelect={handleSelectVideo}>
+          <Button className={styles.controlButton}>動画を読み込む (mp4 / webm)</Button>
+        </FileTrigger>
+      </div>
       {notice !== undefined && (
         <p className={styles.notice} data-tone="alert">
           {notice}
@@ -67,7 +81,7 @@ export const TraceStage = () => {
       {status === 'no-camera' && (
         <div className={styles.cameraPrompt}>
           <p>camera off — カメラを許可すると身体のトレースが始まります</p>
-          <Button className={styles.retryButton} onPress={retryCamera}>
+          <Button className={styles.controlButton} onPress={retryCamera}>
             カメラを再試行
           </Button>
         </div>

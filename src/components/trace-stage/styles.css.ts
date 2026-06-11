@@ -49,19 +49,13 @@ export const notice = css({
   },
 });
 
-export const cameraPrompt = css({
+export const sourceRoot = css({
   position: 'absolute',
   top: '4',
-  left: '4',
-  display: 'grid',
-  gap: '2',
-  justifyItems: 'start',
-  color: 'trace.dim',
-  fontSize: 'sm',
-  textAlign: 'left',
+  right: '4',
 });
 
-export const retryButton = css({
+export const controlButton = css({
   padding: '2',
   paddingInline: '4',
   color: 'trace.hudText',
@@ -75,6 +69,18 @@ export const retryButton = css({
   cursor: 'pointer',
   '&[data-hovered]': { color: 'trace.bg', bg: 'trace.hud' },
   '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'trace.line', outlineOffset: '2px' },
+});
+
+export const cameraPrompt = css({
+  position: 'absolute',
+  top: '4',
+  left: '4',
+  display: 'grid',
+  gap: '2',
+  justifyItems: 'start',
+  color: 'trace.dim',
+  fontSize: 'sm',
+  textAlign: 'left',
 });
 
 export const hint = css({
