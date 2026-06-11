@@ -9,9 +9,9 @@ const OPTIONS = { minVisibility: 0.5, paddingX: 0.02, paddingY: 0.02 };
 const makeLandmarks = (): PoseLandmark[] => Array.from({ length: 33 }, () => ({ x: 0.5, y: 0.5, visibility: 1 }));
 
 describe('buildPartBoxes', () => {
-  test('a fully visible pose yields all 8 part boxes', () => {
+  test('a fully visible pose yields all 6 part boxes', () => {
     const boxes = buildPartBoxes(makeLandmarks(), OPTIONS);
-    expect(boxes.map((box) => box.part).sort()).toEqual(['arm_L', 'arm_R', 'face', 'hand_L', 'hand_R', 'leg_L', 'leg_R', 'torso'].sort());
+    expect(boxes.map((box) => box.part).sort()).toEqual(['face', 'hand_L', 'hand_R', 'hip', 'leg_L', 'leg_R'].sort());
   });
 
   test('the face box expands beyond the landmark span, biased upward for the crown', () => {

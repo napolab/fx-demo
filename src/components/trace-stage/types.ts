@@ -12,7 +12,7 @@ export type PoseLandmark = { x: number; y: number; visibility: number };
 
 // Semantic body part tracked as its own HUD box. `_L`/`_R` follow MediaPipe's
 // convention (the person's own left/right).
-export type BodyPart = 'face' | 'hand_L' | 'hand_R' | 'arm_L' | 'arm_R' | 'torso' | 'leg_L' | 'leg_R';
+export type BodyPart = 'face' | 'hand_L' | 'hand_R' | 'hip' | 'leg_L' | 'leg_R';
 
 // Labeled tracking box around one body part's landmarks (normalized UV).
 export type PartBox = {
