@@ -42,12 +42,13 @@ type EngineState = {
 
 const createTexture = (device: GPUDevice, width: number, height: number, format: GPUTextureFormat, usage: number): GPUTexture => device.createTexture({ size: { width, height }, format, usage });
 
-const sampledCopyUsage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST;
-const sampledRenderUsage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT;
-const cameraUsage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT;
-
 export const createTraceEngine = async (canvas: HTMLCanvasElement): Promise<TraceEngine | undefined> => {
   if (navigator.gpu === undefined) return undefined;
+  // GPUTextureUsage only exists in WebGPU-capable browsers; referencing it at
+  // module scope crashes Next.js server rendering of this client component.
+  const sampledCopyUsage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST;
+  const sampledRenderUsage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT;
+  const cameraUsage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT;
   const adapter = await navigator.gpu.requestAdapter();
   if (adapter === null) return undefined;
   const device = await adapter.requestDevice();
