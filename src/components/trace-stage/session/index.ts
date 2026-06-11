@@ -3,8 +3,7 @@
 // history ring and disposal. The hook only mounts/unmounts it. Mirrors
 // fluid-stage/session deliberately.
 
-import { trackBlobs } from '../detection/blob-tracker';
-import { findGridBlobs } from '../detection/grid-blobs';
+import { findBlobs, trackBlobs } from '../detection/blob-tracker';
 import { traceContours } from '../detection/marching-squares';
 import { createSegmenter, type Segmenter } from '../detection/segmenter';
 import { simplify } from '../detection/simplify';
@@ -27,9 +26,8 @@ export type TraceSession = {
 const SEG_WIDTH = 320;
 const SEG_HEIGHT = 180;
 const MASK_THRESHOLD = 0.5;
-// Fine tracking grid: each occupied tile gets its own tight bbox, so a body
-// breaks into many small boxes (≈27×22px tiles on the 320×180 mask).
-const GRID_OPTIONS = { cols: 12, rows: 8, minCells: 40 };
+// One bbox per connected segment (person / detached region), not per tile.
+const MIN_BLOB_CELLS = 60;
 const SIMPLIFY_EPSILON = 0.006;
 const CONTOUR_SAMPLE_STRIDE = 6;
 const WIRE_OPTIONS = { maxDistance: 0.22, maxWires: 64 };
@@ -158,7 +156,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
 
     const raw = traceContours(mask, SEG_WIDTH, SEG_HEIGHT, MASK_THRESHOLD);
     state.contours = raw.map((contour) => simplify(contour, SIMPLIFY_EPSILON));
-    const tracked = trackBlobs(state.blobs, findGridBlobs(mask, SEG_WIDTH, SEG_HEIGHT, MASK_THRESHOLD, GRID_OPTIONS), state.nextBlobId);
+    const tracked = trackBlobs(state.blobs, findBlobs(mask, SEG_WIDTH, SEG_HEIGHT, MASK_THRESHOLD, MIN_BLOB_CELLS), state.nextBlobId);
     state.blobs = tracked.blobs;
     state.nextBlobId = tracked.nextId;
     state.wires = buildWires(wireAnchors(state.contours, state.blobs), WIRE_OPTIONS);
