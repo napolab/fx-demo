@@ -32,23 +32,12 @@ export type Wire = { a: Point; b: Point; strength: number };
 // Anisotropic cover-fit scale between content (camera) and viewport aspects.
 export type CoverScale = { x: number; y: number };
 
-// A part box lit by its own movement, consumed by the WGSL composite.
-export type GlowBox = {
-  minX: number;
-  minY: number;
-  maxX: number;
-  maxY: number;
-  // 0..1 light amount, driven by the part's velocity.
-  intensity: number;
-};
-
 export type TraceFrameInput = {
   dtSeconds: number;
   timeSeconds: number;
   // 1 when the source texture carries live video (webcam or file), 0 before.
   sourceReady: number;
   coverScale: CoverScale;
-  glows: readonly GlowBox[];
 };
 
 // Everything the p5 overlay needs to draw one frame.

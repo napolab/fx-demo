@@ -58,7 +58,7 @@ export const sourceRoot = css({
 export const controlButton = css({
   padding: '2',
   paddingInline: '4',
-  color: 'trace.hudText',
+  color: 'trace.text',
   bg: 'transparent',
   borderWidth: '1px',
   borderStyle: 'solid',

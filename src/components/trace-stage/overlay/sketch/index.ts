@@ -15,13 +15,20 @@ export type OverlayHandle = {
 
 // Mirrors the panda `trace.*` tokens — p5 needs raw values at draw time.
 // Trace/wire line work is monochrome; the tracking HUD (bbox + labels) is the
-// one blue accent, like the reference footage.
+// one blue accent.
 const COLOR_LINE = '#f2f2f2';
-const COLOR_HUD = '#39c5cf';
-const COLOR_HUD_TEXT = '#9fe8ee';
+// trace.hud = oklch(0.490 0.287 266), trace.labelBg = oklch(0.185 0.020 265)
+// converted to sRGB hex because p5's color parser predates oklch().
+const COLOR_HUD = '#1a34ff';
+const COLOR_LABEL_BG = '#0e131c';
+// White on labelBg ≈ 18:1 — clears WCAG 2.1 AA with room to spare.
+const COLOR_LABEL_TEXT = '#ffffff';
 const COLOR_WIRE = '#bfbfbf';
 const HISTORY_MAX_ALPHA = 110;
-const LABEL_OFFSET_PX = 6;
+const BOX_STROKE_WEIGHT = 2.5;
+const LABEL_HEIGHT_PX = 18;
+const LABEL_PAD_X = 5;
+const LABEL_BASELINE_OFFSET = 13;
 
 const drawContour = (p: P5, contour: Contour, frame: OverlayFrame): void => {
   p.beginShape();
@@ -68,17 +75,23 @@ const drawFrame = (p: P5, frame: OverlayFrame): void => {
   }
 
   // Part boxes + labels: face / hands / arms / torso / legs per detected pose.
+  // The label sits INSIDE the box at its top edge, on a dark plate.
   const vertexCount = frame.contours.reduce((sum, contour) => sum + contour.length, 0);
   for (const part of frame.parts) {
     const min = toScreenPx(p, { x: part.minX, y: part.minY }, frame);
     const max = toScreenPx(p, { x: part.maxX, y: part.maxY }, frame);
     p.noFill();
     p.stroke(COLOR_HUD);
-    p.strokeWeight(1);
+    p.strokeWeight(BOX_STROKE_WEIGHT);
     p.rect(min.x, min.y, max.x - min.x, max.y - min.y);
+
+    const label = formatPartLabel(part);
+    const plateWidth = p.textWidth(label) + LABEL_PAD_X * 2;
     p.noStroke();
-    p.fill(COLOR_HUD_TEXT);
-    p.text(formatPartLabel(part), min.x, min.y - LABEL_OFFSET_PX);
+    p.fill(COLOR_LABEL_BG);
+    p.rect(min.x, min.y, plateWidth, LABEL_HEIGHT_PX);
+    p.fill(COLOR_LABEL_TEXT);
+    p.text(label, min.x + LABEL_PAD_X, min.y + LABEL_BASELINE_OFFSET);
   }
 
   p.noStroke();
