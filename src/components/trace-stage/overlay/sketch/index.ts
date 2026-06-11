@@ -29,8 +29,10 @@ const COLOR_MARKER = '#b3423b';
 const HISTORY_MAX_ALPHA = 110;
 const BOX_STROKE_WEIGHT = 2.5;
 const MARKER_DIAMETER_PX = 7;
-const WIRE_WEIGHT = 1.5;
-const WIRE_MAX_ALPHA = 190;
+const WIRE_WEIGHT = 2.5;
+// Alpha floor keeps even long wires clearly visible.
+const WIRE_MIN_ALPHA = 90;
+const WIRE_MAX_ALPHA = 220;
 const LABEL_HEIGHT_PX = 18;
 const LABEL_PAD_X = 5;
 const LABEL_BASELINE_OFFSET = 13;
@@ -70,7 +72,7 @@ const drawFrame = (p: P5, frame: OverlayFrame): void => {
   for (const wire of frame.wires) {
     const a = toScreenPx(p, wire.a, frame);
     const b = toScreenPx(p, wire.b, frame);
-    p.stroke(191, 191, 191, wire.strength * WIRE_MAX_ALPHA);
+    p.stroke(191, 191, 191, WIRE_MIN_ALPHA + wire.strength * (WIRE_MAX_ALPHA - WIRE_MIN_ALPHA));
     p.strokeWeight(WIRE_WEIGHT);
     p.line(a.x, a.y, b.x, b.y);
   }
