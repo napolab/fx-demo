@@ -24,8 +24,13 @@ const COLOR_LABEL_BG = '#0e131c';
 // White on labelBg ≈ 18:1 — clears WCAG 2.1 AA with room to spare.
 const COLOR_LABEL_TEXT = '#ffffff';
 const COLOR_WIRE = '#bfbfbf';
+// trace.marker — the red node dot at every box center.
+const COLOR_MARKER = '#ff2a2a';
 const HISTORY_MAX_ALPHA = 110;
 const BOX_STROKE_WEIGHT = 2.5;
+const MARKER_DIAMETER_PX = 7;
+const WIRE_WEIGHT = 0.6;
+const WIRE_MAX_ALPHA = 90;
 const LABEL_HEIGHT_PX = 18;
 const LABEL_PAD_X = 5;
 const LABEL_BASELINE_OFFSET = 13;
@@ -61,17 +66,13 @@ const drawFrame = (p: P5, frame: OverlayFrame): void => {
   p.strokeWeight(1.5);
   for (const contour of frame.contours) drawContour(p, contour, frame);
 
-  // Plexus wires.
+  // Faint wires between box-center nodes (the red markers are the nodes).
   for (const wire of frame.wires) {
     const a = toScreenPx(p, wire.a, frame);
     const b = toScreenPx(p, wire.b, frame);
-    p.stroke(191, 191, 191, wire.strength * 150);
-    p.strokeWeight(0.75);
+    p.stroke(191, 191, 191, wire.strength * WIRE_MAX_ALPHA);
+    p.strokeWeight(WIRE_WEIGHT);
     p.line(a.x, a.y, b.x, b.y);
-    p.stroke(COLOR_WIRE);
-    p.strokeWeight(2.5);
-    p.point(a.x, a.y);
-    p.point(b.x, b.y);
   }
 
   // Part boxes + labels: face / hands / arms / torso / legs per detected pose.
@@ -92,6 +93,11 @@ const drawFrame = (p: P5, frame: OverlayFrame): void => {
     p.rect(min.x, min.y, plateWidth, LABEL_HEIGHT_PX);
     p.fill(COLOR_LABEL_TEXT);
     p.text(label, min.x + LABEL_PAD_X, min.y + LABEL_BASELINE_OFFSET);
+
+    // Red node dot at the box center.
+    const center = toScreenPx(p, { x: part.cx, y: part.cy }, frame);
+    p.fill(COLOR_MARKER);
+    p.circle(center.x, center.y, MARKER_DIAMETER_PX);
   }
 
   p.noStroke();

@@ -25,6 +25,7 @@ export default defineConfig({
             hud: { value: 'oklch(0.490 0.287 266)' },
             labelBg: { value: 'oklch(0.185 0.020 265)' },
             labelText: { value: '#ffffff' },
+            marker: { value: '#ff2a2a' },
             wire: { value: '#bfbfbf' },
             text: { value: '#ededed' },
             dim: { value: 'rgba(237, 237, 237, 0.62)' },
