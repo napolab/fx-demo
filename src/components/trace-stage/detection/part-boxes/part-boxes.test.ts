@@ -14,7 +14,7 @@ describe('buildPartBoxes', () => {
     expect(boxes.map((box) => box.part).sort()).toEqual(['arm_L', 'arm_R', 'face', 'hand_L', 'hand_R', 'leg_L', 'leg_R', 'torso'].sort());
   });
 
-  test('the face box wraps the face landmarks plus padding', () => {
+  test('the face box expands beyond the landmark span, biased upward for the crown', () => {
     const landmarks = makeLandmarks();
     const setAt = (index: number, x: number, y: number): void => {
       landmarks[index] = { x, y, visibility: 1 };
@@ -27,10 +27,24 @@ describe('buildPartBoxes', () => {
     setAt(8, 0.6, 0.18);
     setAt(0, 0.5, 0.24);
     const face = buildPartBoxes(landmarks, OPTIONS).find((box) => box.part === 'face');
-    expect(face?.minX).toBeCloseTo(0.4 - 0.02, 5);
-    expect(face?.maxX).toBeCloseTo(0.6 + 0.02, 5);
-    expect(face?.maxY).toBeCloseTo(0.24 + 0.02, 5);
-    expect(face?.cx).toBeCloseTo(0.5, 5);
+    // Wider than the raw 0.4..0.6 landmark span (face landmarks stop at the ears).
+    expect(face?.minX ?? 1).toBeLessThan(0.4);
+    expect(face?.maxX ?? 0).toBeGreaterThan(0.6);
+    expect((face?.minX ?? 0) + (face?.maxX ?? 0)).toBeCloseTo(1, 5);
+    // The raw y center is 0.21; the box reaches further up (forehead/hair)
+    // than down (chin).
+    expect(0.21 - (face?.minY ?? 0)).toBeGreaterThan((face?.maxY ?? 0) - 0.21);
+  });
+
+  test('a degenerate landmark cluster still yields a minimum-size box', () => {
+    // All hand_R landmarks on the exact same point (flat hand seen edge-on).
+    const landmarks = makeLandmarks();
+    for (const index of [16, 18, 20, 22]) {
+      landmarks[index] = { x: 0.7, y: 0.6, visibility: 1 };
+    }
+    const hand = buildPartBoxes(landmarks, OPTIONS).find((box) => box.part === 'hand_R');
+    expect((hand?.maxX ?? 0) - (hand?.minX ?? 0)).toBeGreaterThanOrEqual(0.04);
+    expect((hand?.maxY ?? 0) - (hand?.minY ?? 0)).toBeGreaterThanOrEqual(0.04);
   });
 
   test('parts whose landmarks are below minVisibility are dropped', () => {

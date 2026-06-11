@@ -25,13 +25,46 @@ const PARTS: readonly BodyPart[] = ['face', 'hand_L', 'hand_R', 'arm_L', 'arm_R'
 // A part needs at least this many confidently-visible landmarks to get a box.
 const MIN_VISIBLE_POINTS = 2;
 
+// Landmark clusters under-cover the real silhouette: face landmarks stop at
+// the eyes/mouth (no forehead, hair or chin), hand landmarks at the knuckle
+// line. Expand each raw landmark box around its center, with an upward bias
+// for the face (the crown sits well above the eye line). Multipliers apply
+// to the raw half-extent per direction.
+type PartExpand = { x: number; up: number; down: number };
+const PART_EXPAND: Record<BodyPart, PartExpand> = {
+  face: { x: 1.8, up: 2.6, down: 1.5 },
+  hand_L: { x: 2, up: 2, down: 2 },
+  hand_R: { x: 2, up: 2, down: 2 },
+  arm_L: { x: 1.3, up: 1.3, down: 1.3 },
+  arm_R: { x: 1.3, up: 1.3, down: 1.3 },
+  torso: { x: 1.15, up: 1.15, down: 1.1 },
+  leg_L: { x: 1.25, up: 1.05, down: 1.15 },
+  leg_R: { x: 1.25, up: 1.05, down: 1.15 },
+};
+
+// Nearly-collinear clusters (a flat hand, a straight arm) collapse the raw
+// extent; guarantee a minimum visible half-size in normalized UV.
+const MIN_HALF_X = 0.02;
+const MIN_HALF_Y = 0.02;
+
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
 
 const boxFor = (part: BodyPart, points: readonly PoseLandmark[], options: PartBoxOptions): PartBox => {
-  const minX = clamp01(Math.min(...points.map((point) => point.x)) - options.paddingX);
-  const maxX = clamp01(Math.max(...points.map((point) => point.x)) + options.paddingX);
-  const minY = clamp01(Math.min(...points.map((point) => point.y)) - options.paddingY);
-  const maxY = clamp01(Math.max(...points.map((point) => point.y)) + options.paddingY);
+  const rawMinX = Math.min(...points.map((point) => point.x));
+  const rawMaxX = Math.max(...points.map((point) => point.x));
+  const rawMinY = Math.min(...points.map((point) => point.y));
+  const rawMaxY = Math.max(...points.map((point) => point.y));
+  const centerX = (rawMinX + rawMaxX) / 2;
+  const centerY = (rawMinY + rawMaxY) / 2;
+  const expand = PART_EXPAND[part];
+  const halfX = Math.max(((rawMaxX - rawMinX) / 2) * expand.x, MIN_HALF_X);
+  const halfUp = Math.max(((rawMaxY - rawMinY) / 2) * expand.up, MIN_HALF_Y);
+  const halfDown = Math.max(((rawMaxY - rawMinY) / 2) * expand.down, MIN_HALF_Y);
+
+  const minX = clamp01(centerX - halfX - options.paddingX);
+  const maxX = clamp01(centerX + halfX + options.paddingX);
+  const minY = clamp01(centerY - halfUp - options.paddingY);
+  const maxY = clamp01(centerY + halfDown + options.paddingY);
   return { part, minX, minY, maxX, maxY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
 };
 
