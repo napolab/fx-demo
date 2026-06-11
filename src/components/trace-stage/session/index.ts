@@ -5,6 +5,7 @@
 
 import { traceContours } from '../detection/marching-squares';
 import { buildPartBoxes } from '../detection/part-boxes';
+import { updatePartGlow, type PartGlowState } from '../detection/part-motion';
 import { createPoseDetector, type PoseDetector } from '../detection/pose';
 import { createSegmenter, type Segmenter } from '../detection/segmenter';
 import { simplify } from '../detection/simplify';
@@ -12,7 +13,7 @@ import { createTraceEngine, type TraceEngine } from '../engine';
 import { coverScale } from '../math';
 import { createOverlay, type OverlayHandle } from '../overlay/sketch';
 import { buildWires } from '../overlay/wires';
-import type { Contour, CoverScale, OverlayFrame, PartBox, TraceStatus, Wire } from '../types';
+import type { Contour, CoverScale, GlowBox, OverlayFrame, PartBox, TraceStatus, Wire } from '../types';
 
 export type TraceSession = {
   // Re-attempts webcam acquisition after a permission denial. No-op while
@@ -29,6 +30,8 @@ const SEG_HEIGHT = 180;
 const MASK_THRESHOLD = 0.5;
 // Semantic part boxes (face / hands / arms / torso / legs) from pose landmarks.
 const PART_BOX_OPTIONS = { minVisibility: 0.55, paddingX: 0.018, paddingY: 0.024 };
+// Velocity → light: a brisk hand sweep (~0.5 uv/s) reaches full intensity.
+const GLOW_OPTIONS = { speedScale: 2.2, decayPerSecond: 2.8, maxIntensity: 1 };
 const SIMPLIFY_EPSILON = 0.006;
 // Wires connect part boxes to each other only (≤8 anchors per pose), so the
 // reach is wide enough to span face↔hand↔leg distances.
@@ -57,6 +60,7 @@ type SessionState = {
   contours: readonly Contour[];
   history: readonly (readonly Contour[])[];
   parts: readonly PartBox[];
+  glows: readonly PartGlowState[];
   wires: readonly Wire[];
   objectURL: string | undefined;
 };
@@ -110,6 +114,16 @@ const watchDeviceLost = async (engine: TraceEngine, state: SessionState, onStatu
 // Wires run between part-box centers only — no contour anchors.
 const wireAnchors = (parts: readonly PartBox[]): readonly { x: number; y: number }[] => parts.map((part) => ({ x: part.cx, y: part.cy }));
 
+// Join boxes with their velocity-driven intensity for the WGSL glow pass.
+const glowBoxes = (parts: readonly PartBox[], glows: readonly PartGlowState[]): readonly GlowBox[] =>
+  parts.map((part) => ({
+    minX: part.minX,
+    minY: part.minY,
+    maxX: part.maxX,
+    maxY: part.maxY,
+    intensity: glows.find((glow) => glow.part === part.part)?.intensity ?? 0,
+  }));
+
 export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: HTMLElement, onStatus: (status: TraceStatus) => void): TraceSession => {
   const state: SessionState = {
     disposed: false,
@@ -130,6 +144,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     contours: [],
     history: [],
     parts: [],
+    glows: [],
     wires: [],
     objectURL: undefined,
   };
@@ -147,7 +162,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     coverScale: state.cover,
   });
 
-  const detect = (timestampMs: number): void => {
+  const detect = (timestampMs: number, dtSeconds: number): void => {
     if (state.segmenter === undefined || state.video === undefined || segContext === null) return;
     segContext.drawImage(state.video, 0, 0, SEG_WIDTH, SEG_HEIGHT);
     const mask = state.segmenter.segmentFrame(segCanvas, timestampMs);
@@ -157,6 +172,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     state.contours = raw.map((contour) => simplify(contour, SIMPLIFY_EPSILON));
     const poses = state.pose?.detectFrame(segCanvas, timestampMs) ?? [];
     state.parts = poses.flatMap((pose) => buildPartBoxes(pose, PART_BOX_OPTIONS));
+    state.glows = updatePartGlow(state.glows, state.parts, dtSeconds, GLOW_OPTIONS);
     state.wires = buildWires(wireAnchors(state.parts), WIRE_OPTIONS);
 
     if (state.frameCount % HISTORY_EVERY_N_FRAMES === 0 && state.contours.length > 0) {
@@ -174,13 +190,14 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
 
     if (state.video !== undefined) {
       state.engine.updateVideo(state.video);
-      detect(timestampMs);
+      detect(timestampMs, dtSeconds);
     }
     state.engine.frame({
       dtSeconds,
       timeSeconds: state.timeSeconds,
       sourceReady: state.video !== undefined ? 1 : 0,
       coverScale: state.cover,
+      glows: glowBoxes(state.parts, state.glows),
     });
     state.rafId = requestAnimationFrame(tick);
   };

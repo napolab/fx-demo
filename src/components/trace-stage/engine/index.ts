@@ -20,6 +20,9 @@ export type TraceEngine = {
 const MAX_DPR = 2;
 // coverScale(vec2) + resolution(vec2) + time + sourceReady + 2 pads = 8 floats.
 const PARAMS_FLOAT_COUNT = 8;
+// GlowData: count vec4 + 16 × (rect vec4 + info vec4) — matches composite.wgsl.
+const GLOW_MAX_BOXES = 16;
+const GLOW_FLOAT_COUNT = 4 + GLOW_MAX_BOXES * 8;
 
 type EngineState = {
   camera: GPUTexture;
@@ -56,6 +59,8 @@ export const createTraceEngine = async (canvas: HTMLCanvasElement): Promise<Trac
   const sampler = device.createSampler({ magFilter: 'linear', minFilter: 'linear' });
   const uniformBuffer = device.createBuffer({ size: PARAMS_FLOAT_COUNT * 4, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   const uniformData = new Float32Array(PARAMS_FLOAT_COUNT);
+  const glowBuffer = device.createBuffer({ size: GLOW_FLOAT_COUNT * 4, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const glowData = new Float32Array(GLOW_FLOAT_COUNT);
 
   const state: EngineState = {
     camera: createTexture(device, 1, 1, 'rgba8unorm', cameraUsage),
@@ -70,6 +75,7 @@ export const createTraceEngine = async (canvas: HTMLCanvasElement): Promise<Trac
         { binding: 0, resource: { buffer: uniformBuffer } },
         { binding: 1, resource: sampler },
         { binding: 2, resource: state.camera.createView() },
+        { binding: 3, resource: { buffer: glowBuffer } },
       ],
     });
   };
@@ -80,6 +86,14 @@ export const createTraceEngine = async (canvas: HTMLCanvasElement): Promise<Trac
       if (state.destroyed || state.bindGroup === undefined) return;
       uniformData.set([input.coverScale.x, input.coverScale.y, canvas.width, canvas.height, input.timeSeconds, input.sourceReady, 0, 0]);
       device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+      const glowCount = Math.min(input.glows.length, GLOW_MAX_BOXES);
+      glowData.fill(0);
+      glowData[0] = glowCount;
+      for (const [index, glowBox] of input.glows.slice(0, glowCount).entries()) {
+        glowData.set([glowBox.minX, glowBox.minY, glowBox.maxX, glowBox.maxY, glowBox.intensity, 0, 0, 0], 4 + index * 8);
+      }
+      device.queue.writeBuffer(glowBuffer, 0, glowData);
 
       const encoder = device.createCommandEncoder();
       const pass = encoder.beginRenderPass({
