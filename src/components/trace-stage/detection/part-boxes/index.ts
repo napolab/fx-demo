@@ -32,7 +32,9 @@ const MIN_VISIBLE_POINTS = 2;
 // to the raw half-extent per direction.
 type PartExpand = { x: number; up: number; down: number };
 const PART_EXPAND: Record<BodyPart, PartExpand> = {
-  face: { x: 2.3, up: 3.4, down: 1.9 },
+  // Face covers the whole head INCLUDING hair — the upward reach is much
+  // larger than the eye-to-mouth landmark span suggests.
+  face: { x: 2.6, up: 4.8, down: 1.9 },
   hand_L: { x: 2, up: 2, down: 2 },
   hand_R: { x: 2, up: 2, down: 2 },
   arm_L: { x: 1.3, up: 1.3, down: 1.3 },
