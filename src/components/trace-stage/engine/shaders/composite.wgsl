@@ -1,9 +1,10 @@
-// Final grade: cover-fit the video source into the viewport and dim it just
-// enough that the monochrome overlay lines stay readable. The video keeps its
-// color; only the line work above is grayscale. No feedback/accumulation —
-// every frame is graded fresh (scanlines, film grain, vignette).
+// Final grade: cover-fit the video source into the viewport. The stage is
+// grayscale by default; color is REVEALED only inside part boxes that are
+// moving fast (intensity from the session's velocity tracker). No
+// feedback/accumulation — every frame is graded fresh (scanlines, grain,
+// vignette).
 
-// Up to 16 velocity-lit part boxes (rect in content UV, info.x = intensity).
+// Up to 16 motion-tracked part boxes (rect in content UV, info.x = intensity).
 struct GlowBox {
   rect: vec4f,
   info: vec4f,
@@ -39,17 +40,18 @@ fn fsMain(in: VSOut) -> @location(0) vec4f {
   let uv = (in.uv - vec2f(0.5)) * params.coverScale + vec2f(0.5);
 
   let source = textureSample(sourceTexture, linearSampler, uv).rgb * params.sourceReady;
+  let luma = dot(source, vec3f(0.2126, 0.7152, 0.0722));
 
-  // Dimmed color stage — visible image, but the white lines carry the look.
-  var color = source * 0.6;
-
-  // Velocity glow: moving part boxes light their patch of video back up.
+  // Color reveal: fast-moving part boxes keep their color, the rest is mono.
+  var reveal = 0.0;
   for (var index = 0u; index < 16u; index = index + 1u) {
     if (f32(index) >= glow.count.x) { break; }
     let box = glow.boxes[index];
-    let amount = boxGlow(uv, box.rect) * box.info.x;
-    color += source * amount * 0.9 + vec3f(0.06) * amount;
+    reveal = max(reveal, boxGlow(uv, box.rect) * box.info.x);
   }
+  let graded = mix(vec3f(luma), source, clamp(reveal, 0.0, 1.0));
+
+  var color = graded * 0.6;
 
   let scan = 0.95 + 0.05 * sin(in.uv.y * params.resolution.y * 3.14159265);
   color *= scan;
