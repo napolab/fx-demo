@@ -14,16 +14,14 @@ export type OverlayHandle = {
 };
 
 // Mirrors the panda `trace.*` tokens — p5 needs raw values at draw time.
-// All line work is monochrome by design; hierarchy comes from brightness.
+// Trace/wire line work is monochrome; the tracking HUD (bbox + labels) is the
+// one blue accent, like the reference footage.
 const COLOR_LINE = '#f2f2f2';
-const COLOR_HUD = '#8c8c8c';
-const COLOR_HUD_TEXT = '#d4d4d4';
+const COLOR_HUD = '#39c5cf';
+const COLOR_HUD_TEXT = '#9fe8ee';
 const COLOR_WIRE = '#bfbfbf';
 const HISTORY_MAX_ALPHA = 110;
 const LABEL_OFFSET_PX = 6;
-// The fine tracking grid yields many small boxes; labelling them all turns
-// into noise — only the largest few get coordinates.
-const LABELLED_BOXES_MAX = 4;
 
 const drawContour = (p: P5, contour: Contour, frame: OverlayFrame): void => {
   p.beginShape();
@@ -69,14 +67,8 @@ const drawFrame = (p: P5, frame: OverlayFrame): void => {
     p.point(b.x, b.y);
   }
 
-  // Blob bboxes; only the largest few carry coordinate labels.
+  // Blob bboxes + labels, one per tracked segment.
   const vertexCount = frame.contours.reduce((sum, contour) => sum + contour.length, 0);
-  const labelled = new Set(
-    [...frame.blobs]
-      .sort((a, b) => b.area - a.area)
-      .slice(0, LABELLED_BOXES_MAX)
-      .map((blob) => blob.id),
-  );
   for (const blob of frame.blobs) {
     const min = toScreenPx(p, { x: blob.minX, y: blob.minY }, frame);
     const max = toScreenPx(p, { x: blob.maxX, y: blob.maxY }, frame);
@@ -84,7 +76,6 @@ const drawFrame = (p: P5, frame: OverlayFrame): void => {
     p.stroke(COLOR_HUD);
     p.strokeWeight(1);
     p.rect(min.x, min.y, max.x - min.x, max.y - min.y);
-    if (!labelled.has(blob.id)) continue;
     p.noStroke();
     p.fill(COLOR_HUD_TEXT);
     p.text(formatBlobLabel(blob), min.x, min.y - LABEL_OFFSET_PX);
