@@ -19,4 +19,9 @@ describe('TraceStage', () => {
     render(<TraceStage />);
     await expect.element(page.getByRole('button', { name: /動画を読み込む/ })).toBeInTheDocument();
   });
+
+  test('offers a silhouette threshold slider', async () => {
+    render(<TraceStage />);
+    await expect.element(page.getByRole('slider', { name: /閾値/ })).toBeInTheDocument();
+  });
 });

@@ -21,6 +21,8 @@ export type TraceSession = {
   // Switches the source to a user-provided video file (webm/mp4), replacing
   // the webcam stream if one is active.
   loadVideoFile: (file: File) => Promise<void>;
+  // Retunes the live contour iso-level (silhouette segmentation threshold).
+  setMaskThreshold: (value: number) => void;
   dispose: () => void;
 };
 
@@ -59,6 +61,7 @@ type SessionState = {
   parts: readonly PartBox[];
   wires: readonly Wire[];
   objectURL: string | undefined;
+  maskThreshold: number;
 };
 
 type CameraHandles = { video: HTMLVideoElement; stream: MediaStream };
@@ -132,6 +135,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     parts: [],
     wires: [],
     objectURL: undefined,
+    maskThreshold: MASK_THRESHOLD,
   };
 
   const segCanvas = document.createElement('canvas');
@@ -153,7 +157,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     const mask = state.segmenter.segmentFrame(segCanvas, timestampMs);
     if (mask === undefined || mask.length !== SEG_WIDTH * SEG_HEIGHT) return;
 
-    const raw = traceContours(mask, SEG_WIDTH, SEG_HEIGHT, MASK_THRESHOLD);
+    const raw = traceContours(mask, SEG_WIDTH, SEG_HEIGHT, state.maskThreshold);
     state.contours = raw.map((contour) => simplify(contour, SIMPLIFY_EPSILON));
     const poses = state.pose?.detectFrame(segCanvas, timestampMs) ?? [];
     state.parts = poses.flatMap((pose) => buildPartBoxes(pose, PART_BOX_OPTIONS));
@@ -307,6 +311,11 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
       await connectCamera();
     },
     loadVideoFile,
+    // Retunes the live contour iso-level; next detect() reads the new value.
+    setMaskThreshold(value) {
+      if (state.disposed) return;
+      state.maskThreshold = value;
+    },
     dispose() {
       state.disposed = true;
       cancelAnimationFrame(state.rafId);

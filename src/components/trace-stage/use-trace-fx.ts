@@ -12,10 +12,14 @@ export type TraceFx = {
   status: TraceStatus;
   retryCamera: () => Promise<void>;
   loadVideoFile: (file: File) => Promise<void>;
+  maskThreshold: number;
+  setMaskThreshold: (value: number) => void;
 };
 
 export const useTraceFx = (canvasRef: RefObject<HTMLCanvasElement | null>, overlayRef: RefObject<HTMLDivElement | null>): TraceFx => {
   const [status, setStatus] = useState<TraceStatus>('booting');
+  // 0.5 mirrors the session default MASK_THRESHOLD.
+  const [maskThreshold, setThresholdState] = useState(0.5);
   const sessionRef = useRef<TraceSession | undefined>(undefined);
 
   useEffect(() => {
@@ -41,5 +45,10 @@ export const useTraceFx = (canvasRef: RefObject<HTMLCanvasElement | null>, overl
     await sessionRef.current?.loadVideoFile(file);
   }, []);
 
-  return useMemo(() => ({ status, retryCamera, loadVideoFile }), [status, retryCamera, loadVideoFile]);
+  const setMaskThreshold = useCallback((value: number) => {
+    setThresholdState(value);
+    sessionRef.current?.setMaskThreshold(value);
+  }, []);
+
+  return useMemo(() => ({ status, retryCamera, loadVideoFile, maskThreshold, setMaskThreshold }), [status, retryCamera, loadVideoFile, maskThreshold, setMaskThreshold]);
 };

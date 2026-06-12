@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, FileTrigger } from 'react-aria-components';
 
 import * as styles from './styles.css';
+import { ThresholdSlider } from './threshold-slider';
 import type { TraceStatus } from './types';
 import { useTraceFx } from './use-trace-fx';
 
@@ -51,7 +52,7 @@ const useFadeOut = (delayMs: number): boolean => {
 export const TraceStage = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
-  const { status, retryCamera, loadVideoFile } = useTraceFx(canvasRef, overlayRef);
+  const { status, retryCamera, loadVideoFile, maskThreshold, setMaskThreshold } = useTraceFx(canvasRef, overlayRef);
   const hintVisible = useFadeOut(HINT_VISIBLE_MS);
   const notice = noticeText(status);
 
@@ -72,6 +73,7 @@ export const TraceStage = () => {
         <FileTrigger acceptedFileTypes={['video/mp4', 'video/webm']} onSelect={handleSelectVideo}>
           <Button className={styles.controlButton}>動画を読み込む (mp4 / webm)</Button>
         </FileTrigger>
+        <ThresholdSlider value={maskThreshold} onChange={setMaskThreshold} />
       </div>
       {notice !== undefined && (
         <p className={styles.notice} data-tone="alert">

@@ -53,6 +53,59 @@ export const sourceRoot = css({
   position: 'absolute',
   top: '4',
   right: '4',
+  display: 'grid',
+  gap: '2',
+  justifyItems: 'stretch',
+  width: 'fit-content',
+});
+
+export const sliderRoot = css({
+  display: 'grid',
+  gap: '2',
+  padding: '2',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'trace.hud',
+  borderRadius: 'sm',
+  color: 'trace.text',
+  fontFamily: 'mono',
+  fontSize: 'sm',
+});
+
+export const sliderHeaderRoot = css({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: '4',
+});
+
+export const sliderLabel = css({
+  color: 'trace.dim',
+});
+
+export const sliderOutput = css({
+  color: 'trace.text',
+  fontFamily: 'mono',
+});
+
+export const sliderTrack = css({
+  position: 'relative',
+  width: 'full',
+  height: '1',
+  bg: 'trace.dim',
+  borderRadius: 'full',
+  cursor: 'pointer',
+  alignSelf: 'center',
+});
+
+export const sliderThumb = css({
+  width: '3',
+  height: '3',
+  borderRadius: 'full',
+  bg: 'trace.line',
+  cursor: 'pointer',
+  '&[data-dragging]': { bg: 'trace.text' },
+  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'trace.line', outlineOffset: '2px' },
 });
 
 export const controlButton = css({
