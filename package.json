@@ -38,6 +38,7 @@
     "@payloadcms/richtext-lexical": "3.82.1",
     "@payloadcms/storage-r2": "3.82.1",
     "@payloadcms/ui": "3.82.1",
+    "delaunator": "^5.1.0",
     "graphql": "^16.14.2",
     "next": "15.4.11",
     "p5": "^2.3.0",
