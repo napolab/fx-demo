@@ -1,6 +1,8 @@
-// Records the masked canvas to a WebM file (video only) via MediaRecorder and
+// Records any canvas to a WebM file (video only) via MediaRecorder and
 // auto-downloads it on stop. Encapsulates the imperative recorder lifecycle so
-// the session just calls start/stop. No audio track is captured by design.
+// callers just invoke start/stop. No audio track is captured by design.
+// Shared by the bounding-mask stage (single 2D canvas) and the trace stage
+// (an offscreen compositor of its WebGPU + p5 layers).
 
 export type CanvasRecorder = {
   start: () => void;

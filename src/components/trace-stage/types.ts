@@ -48,6 +48,9 @@ export type OverlayFrame = {
   parts: readonly PartBox[];
   wires: readonly Wire[];
   coverScale: CoverScale;
+  // When true, the face part box is filled with opaque sumi ink (censor),
+  // drawn under the HUD frame so the box + label still frame the masked face.
+  maskFace: boolean;
 };
 
 export type TraceStatus = 'booting' | 'running' | 'no-webgpu' | 'no-camera' | 'model-error' | 'lost';

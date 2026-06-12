@@ -6,7 +6,9 @@
 // graded video layer.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Button, FileTrigger } from 'react-aria-components';
+import { Button, FileTrigger, ToggleButton } from 'react-aria-components';
+
+import { formatTime } from '../format-time';
 
 import * as styles from './styles.css';
 import { ThresholdSlider } from './threshold-slider';
@@ -52,7 +54,7 @@ const useFadeOut = (delayMs: number): boolean => {
 export const TraceStage = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
-  const { status, retryCamera, loadVideoFile, maskThreshold, setMaskThreshold } = useTraceFx(canvasRef, overlayRef);
+  const { status, retryCamera, loadVideoFile, maskThreshold, setMaskThreshold, maskFace, setMaskFace, isRecording, recordingMs, toggleRecording } = useTraceFx(canvasRef, overlayRef);
   const hintVisible = useFadeOut(HINT_VISIBLE_MS);
   const notice = noticeText(status);
 
@@ -73,6 +75,12 @@ export const TraceStage = () => {
         <FileTrigger acceptedFileTypes={['video/mp4', 'video/webm']} onSelect={handleSelectVideo}>
           <Button className={styles.controlButton}>動画を読み込む (mp4 / webm)</Button>
         </FileTrigger>
+        <ToggleButton className={styles.maskToggle} isSelected={maskFace} onChange={setMaskFace}>
+          顔マスク {maskFace ? 'ON' : 'OFF'}
+        </ToggleButton>
+        <Button className={styles.recordButton} data-recording={isRecording || undefined} onPress={toggleRecording}>
+          {isRecording ? `■ 録画停止 ${formatTime(recordingMs / 1000)}` : '● 録画開始 (webm)'}
+        </Button>
         <ThresholdSlider value={maskThreshold} onChange={setMaskThreshold} />
       </div>
       {notice !== undefined && (

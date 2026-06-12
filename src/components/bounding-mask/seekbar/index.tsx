@@ -6,7 +6,7 @@
 import { useCallback } from 'react';
 import { Button, Slider, SliderThumb, SliderTrack } from 'react-aria-components';
 
-import { formatTime } from '../format-time';
+import { formatTime } from '../../format-time';
 
 import * as styles from './styles.css';
 

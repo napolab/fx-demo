@@ -31,7 +31,7 @@ import {
 } from 'react-aria-components';
 
 import type { BodyPart } from '../../trace-stage/types';
-import { formatTime } from '../format-time';
+import { formatTime } from '../../format-time';
 import { ALL_PARTS, PRESET_COLORS, type MaskParams, type MaskShape } from '../types';
 
 import * as styles from './styles.css';

@@ -124,6 +124,44 @@ export const controlButton = css({
   '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'trace.line', outlineOffset: '2px' },
 });
 
+// Mode toggle (face censor). Mirrors controlButton, lit when selected so the
+// active mode is unmistakable.
+export const maskToggle = css({
+  padding: '2',
+  paddingInline: '4',
+  color: 'trace.text',
+  bg: 'transparent',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'trace.hud',
+  borderRadius: 'sm',
+  fontSize: 'sm',
+  fontFamily: 'mono',
+  cursor: 'pointer',
+  '&[data-hovered]': { color: 'trace.bg', bg: 'trace.hud' },
+  '&[data-selected]': { color: 'trace.bg', bg: 'trace.hud' },
+  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'trace.line', outlineOffset: '2px' },
+});
+
+// Record button. Mirrors controlButton; lit with the marker red while a
+// recording is in progress so the active capture is unmistakable.
+export const recordButton = css({
+  padding: '2',
+  paddingInline: '4',
+  color: 'trace.text',
+  bg: 'transparent',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'trace.hud',
+  borderRadius: 'sm',
+  fontSize: 'sm',
+  fontFamily: 'mono',
+  cursor: 'pointer',
+  '&[data-hovered]': { color: 'trace.bg', bg: 'trace.hud' },
+  '&[data-recording]': { color: 'trace.bg', bg: 'trace.marker', borderColor: 'trace.marker' },
+  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'trace.line', outlineOffset: '2px' },
+});
+
 export const cameraPrompt = css({
   position: 'absolute',
   top: '4',

@@ -4,13 +4,13 @@
 // is a plain 2D context. The hook only mounts/unmounts it; live param tweaks
 // arrive through getParams() so the camera is never torn down.
 
+import { expandHands, HAND_FINGER_SCALE_X, HAND_FINGER_SCALE_Y } from '../../trace-stage/detection/expand-hands';
 import { buildPartBoxes } from '../../trace-stage/detection/part-boxes';
 import { createPoseDetector, type PoseDetector } from '../../trace-stage/detection/pose';
 import { createSegmenter, type Segmenter } from '../../trace-stage/detection/segmenter';
 import { coverScale } from '../../trace-stage/math';
 import type { CoverScale, PartBox } from '../../trace-stage/types';
-import { expandHands } from '../expand-hands';
-import { createCanvasRecorder } from '../recorder';
+import { createCanvasRecorder } from '../../canvas-recorder';
 import { drawFrame } from '../render';
 import type { MaskParams, Status } from '../types';
 
@@ -36,9 +36,6 @@ export type BoundingMaskSession = {
 const SEG_WIDTH = 320;
 const SEG_HEIGHT = 180;
 const PART_BOX_OPTIONS = { minVisibility: 0.55, paddingX: 0.018, paddingY: 0.024 };
-// Pose hand boxes stop at the knuckles; grow them so the fingers are covered.
-const HAND_FINGER_SCALE_X = 1.6;
-const HAND_FINGER_SCALE_Y = 1.85;
 
 type SessionState = {
   disposed: boolean;

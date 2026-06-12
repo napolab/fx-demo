@@ -1,9 +1,14 @@
 // Pose only tracks the wrist + finger-base knuckles, so the hand part box stops
-// at the knuckle line. For masking we want the fingers covered too, so grow
-// each hand box around its centre. Pure → unit-tested. Kept local to the
-// bounding-mask stage so the shared trace-stage detection is untouched.
+// at the knuckle line. To cover the fingers too, grow each hand box around its
+// centre. Pure → unit-tested. Shared by trace-stage (HUD reach) and
+// bounding-mask (mask coverage) so the finger reach stays identical across both
+// stages.
 
-import type { BodyPart, PartBox } from '../../trace-stage/types';
+import type { BodyPart, PartBox } from '../../types';
+
+// Pose hand boxes stop at the knuckles; grow them so the fingers are covered.
+export const HAND_FINGER_SCALE_X = 1.6;
+export const HAND_FINGER_SCALE_Y = 1.85;
 
 const HAND_PARTS: ReadonlySet<BodyPart> = new Set(['hand_L', 'hand_R']);
 

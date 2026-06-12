@@ -11,6 +11,9 @@ import type P5 from 'p5';
 export type OverlayHandle = {
   resize: (width: number, height: number) => void;
   remove: () => void;
+  // The p5-created <canvas> element, for compositing the overlay into a
+  // recording. Undefined until p5 has mounted its canvas in the container.
+  element: () => HTMLCanvasElement | undefined;
 };
 
 // Mirrors the panda `trace.*` tokens — p5 needs raw values at draw time.
@@ -26,6 +29,11 @@ const COLOR_LABEL_TEXT = '#ffffff';
 const COLOR_WIRE = '#bfbfbf';
 // trace.marker — muted brick red for the node dot at every box center.
 const COLOR_MARKER = '#b3423b';
+// Sumi ink for the face censor — opaque near-black, a touch warm. Raw value
+// because p5 draws outside Panda's token system (mirrors trace.bg).
+const COLOR_FACE_MASK = '#0a0a0a';
+// Corner radius (px) of the rounded-rectangle face censor.
+const FACE_MASK_RADIUS_PX = 10;
 const HISTORY_MAX_ALPHA = 110;
 const BOX_STROKE_WEIGHT = 2.5;
 const MARKER_DIAMETER_PX = 7;
@@ -49,6 +57,19 @@ const drawContour = (p: P5, contour: Contour, frame: OverlayFrame): void => {
 const toScreenPx = (p: P5, point: Point, frame: OverlayFrame): Point => {
   const screen = contentToScreen(point, frame.coverScale);
   return { x: screen.x * p.width, y: screen.y * p.height };
+};
+
+// Sumi-ink censor over the detected face box (rounded rect). Drawn before the
+// HUD boxes so the blue frame + label still surround the masked face.
+const drawFaceMask = (p: P5, frame: OverlayFrame): void => {
+  if (!frame.maskFace) return;
+  const face = frame.parts.find((part) => part.part === 'face');
+  if (face === undefined) return;
+  const min = toScreenPx(p, { x: face.minX, y: face.minY }, frame);
+  const max = toScreenPx(p, { x: face.maxX, y: face.maxY }, frame);
+  p.noStroke();
+  p.fill(COLOR_FACE_MASK);
+  p.rect(min.x, min.y, max.x - min.x, max.y - min.y, FACE_MASK_RADIUS_PX);
 };
 
 const drawFrame = (p: P5, frame: OverlayFrame): void => {
@@ -76,6 +97,9 @@ const drawFrame = (p: P5, frame: OverlayFrame): void => {
     p.strokeWeight(WIRE_WEIGHT);
     p.line(a.x, a.y, b.x, b.y);
   }
+
+  // Sumi-ink face censor, beneath the HUD frame so the box still surrounds it.
+  drawFaceMask(p, frame);
 
   // Part boxes + labels: face / hands / arms / torso / legs per detected pose.
   // The label sits INSIDE the box at its top edge, on a dark plate.
@@ -130,6 +154,9 @@ export const createOverlay = async (container: HTMLElement, getFrame: () => Over
     },
     remove() {
       handle.instance?.remove();
+    },
+    element() {
+      return container.querySelector('canvas') ?? undefined;
     },
   };
 };

@@ -3,6 +3,9 @@
 // history ring and disposal. The hook only mounts/unmounts it. Mirrors
 // fluid-stage/session deliberately.
 
+import { createCanvasRecorder } from '../../canvas-recorder';
+import { createCompositor } from '../compositor';
+import { expandHands, HAND_FINGER_SCALE_X, HAND_FINGER_SCALE_Y } from '../detection/expand-hands';
 import { traceContours } from '../detection/marching-squares';
 import { buildPartBoxes } from '../detection/part-boxes';
 import { createPoseDetector, type PoseDetector } from '../detection/pose';
@@ -23,6 +26,14 @@ export type TraceSession = {
   loadVideoFile: (file: File) => Promise<void>;
   // Retunes the live contour iso-level (silhouette segmentation threshold).
   setMaskThreshold: (value: number) => void;
+  // Toggles the sumi-ink face censor drawn over the detected face box.
+  setMaskFace: (value: boolean) => void;
+  // Records the composited stage (video + overlay) to a downloaded WebM.
+  startRecording: () => void;
+  stopRecording: () => void;
+  isRecording: () => boolean;
+  // Milliseconds since the current recording started; 0 when idle.
+  getRecordingMs: () => number;
   dispose: () => void;
 };
 
@@ -39,6 +50,8 @@ const HISTORY_EVERY_N_FRAMES = 3;
 const HISTORY_MAX = 10;
 const RESIZE_DEBOUNCE_MS = 180;
 const MAX_DT_SECONDS = 1 / 20;
+const RECORDING_FPS = 30;
+const RECORDING_FILENAME = 'trace-recording.webm';
 
 type SessionState = {
   disposed: boolean;
@@ -62,6 +75,7 @@ type SessionState = {
   wires: readonly Wire[];
   objectURL: string | undefined;
   maskThreshold: number;
+  maskFace: boolean;
 };
 
 type CameraHandles = { video: HTMLVideoElement; stream: MediaStream };
@@ -136,6 +150,7 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     wires: [],
     objectURL: undefined,
     maskThreshold: MASK_THRESHOLD,
+    maskFace: false,
   };
 
   const segCanvas = document.createElement('canvas');
@@ -143,12 +158,18 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
   segCanvas.height = SEG_HEIGHT;
   const segContext = segCanvas.getContext('2d');
 
+  // Recording: an offscreen compositor stacks the WebGPU + overlay canvases,
+  // and the recorder captures that composite. Both stay idle until start().
+  const compositor = createCompositor();
+  const recorder = createCanvasRecorder(compositor.canvas, RECORDING_FPS, RECORDING_FILENAME);
+
   const overlayFrame = (): OverlayFrame => ({
     contours: state.contours,
     history: state.history,
     parts: state.parts,
     wires: state.wires,
     coverScale: state.cover,
+    maskFace: state.maskFace,
   });
 
   const detect = (timestampMs: number): void => {
@@ -160,7 +181,10 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     const raw = traceContours(mask, SEG_WIDTH, SEG_HEIGHT, state.maskThreshold);
     state.contours = raw.map((contour) => simplify(contour, SIMPLIFY_EPSILON));
     const poses = state.pose?.detectFrame(segCanvas, timestampMs) ?? [];
-    state.parts = poses.flatMap((pose) => buildPartBoxes(pose, PART_BOX_OPTIONS));
+    // Pose hand boxes stop at the knuckles; grow them so the fingers are
+    // covered — matching the bounding-mask stage's hand reach exactly.
+    const boxes = poses.flatMap((pose) => buildPartBoxes(pose, PART_BOX_OPTIONS));
+    state.parts = expandHands(boxes, HAND_FINGER_SCALE_X, HAND_FINGER_SCALE_Y);
     state.wires = buildWires(wireAnchors(state.parts), WIRE_OPTIONS);
 
     if (state.frameCount % HISTORY_EVERY_N_FRAMES === 0 && state.contours.length > 0) {
@@ -186,6 +210,9 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
       sourceReady: state.video !== undefined ? 1 : 0,
       coverScale: state.cover,
     });
+    // Composite the two layers into the recording canvas only while recording,
+    // right after the GPU frame so the WebGPU canvas is drawImage-readable.
+    if (recorder.isActive()) compositor.composite(canvas, state.overlay?.element());
     state.rafId = requestAnimationFrame(tick);
   };
 
@@ -315,6 +342,24 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     setMaskThreshold(value) {
       if (state.disposed) return;
       state.maskThreshold = value;
+    },
+    // Toggles the face censor; next overlay frame reads the new value.
+    setMaskFace(value) {
+      if (state.disposed) return;
+      state.maskFace = value;
+    },
+    startRecording() {
+      if (state.disposed) return;
+      recorder.start();
+    },
+    stopRecording() {
+      recorder.stop();
+    },
+    isRecording() {
+      return recorder.isActive();
+    },
+    getRecordingMs() {
+      return recorder.elapsedMs();
     },
     dispose() {
       state.disposed = true;

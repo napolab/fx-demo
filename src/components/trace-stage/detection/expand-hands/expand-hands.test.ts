@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { PartBox } from '../../trace-stage/types';
+import type { PartBox } from '../../types';
 
 import { expandHands } from './index';
 
