@@ -29,6 +29,18 @@ export const title = css({ fontSize: 'sm', fontWeight: 'bold', letterSpacing: 'w
 
 export const subtitle = css({ fontSize: 'xs', color: 'stage.dim' });
 
+export const sectionTitle = css({
+  fontSize: 'xs',
+  color: 'stage.accent',
+  letterSpacing: 'widest',
+  textTransform: 'uppercase',
+  marginTop: '2',
+  paddingBottom: '1',
+  borderBottomWidth: '1px',
+  borderBottomStyle: 'solid',
+  borderBottomColor: 'stage.line',
+});
+
 export const slider = css({ display: 'flex', flexDirection: 'column', gap: '2', width: '[100%]' });
 
 export const sliderHeader = css({ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' });

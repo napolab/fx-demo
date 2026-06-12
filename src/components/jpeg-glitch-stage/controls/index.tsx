@@ -1,7 +1,10 @@
 'use client';
 
-// AE Effect Controls-style parameter panel. Each slider reports through a
-// single (field, value) callback so the stage owns the params object.
+// AE Effect Controls-style parameter panel mirroring the aescripts JPEG glitch
+// plugin: a compression section (compression ratio + broken bytes) and a
+// quantization-tables section (QTC override + random table breaking). Each
+// slider reports through a single (field, value) callback so the stage owns
+// the params object.
 
 import { useCallback } from 'react';
 import { Button, Label, Radio, RadioGroup, Slider, SliderOutput, SliderThumb, SliderTrack } from 'react-aria-components';
@@ -9,7 +12,7 @@ import { Button, Label, Radio, RadioGroup, Slider, SliderOutput, SliderThumb, Sl
 import * as styles from './styles.css';
 import type { BlockSize, GlitchParams } from '../types';
 
-export type NumericField = 'amount' | 'quality' | 'tableChaos' | 'chroma' | 'shift' | 'seed';
+export type NumericField = 'compression' | 'brokenBytes' | 'qtcPosition' | 'qtcValue' | 'breakingBytes' | 'maxRandom' | 'chroma' | 'seed';
 
 export type GlitchControlsProps = {
   params: GlitchParams;
@@ -22,11 +25,12 @@ type ParamSliderProps = {
   field: NumericField;
   label: string;
   value: number;
+  minValue?: number;
   maxValue: number;
   onChangeField: (field: NumericField, value: number) => void;
 };
 
-const ParamSlider = ({ field, label, value, maxValue, onChangeField }: ParamSliderProps) => {
+const ParamSlider = ({ field, label, value, minValue = 0, maxValue, onChangeField }: ParamSliderProps) => {
   const handleChange = useCallback(
     (next: number | number[]) => {
       if (typeof next === 'number') onChangeField(field, next);
@@ -35,7 +39,7 @@ const ParamSlider = ({ field, label, value, maxValue, onChangeField }: ParamSlid
   );
 
   return (
-    <Slider className={styles.slider} value={value} minValue={0} maxValue={maxValue} step={1} onChange={handleChange}>
+    <Slider className={styles.slider} value={value} minValue={minValue} maxValue={maxValue} step={1} onChange={handleChange}>
       <div className={styles.sliderHeader}>
         <Label className={styles.sliderLabel}>{label}</Label>
         <SliderOutput className={styles.sliderValue} />
@@ -72,9 +76,15 @@ export const GlitchControls = ({ params, onChangeField, onChangeBlockSize, onRan
         <p className={styles.title}>fx JPEG Glitch</p>
         <p className={styles.subtitle}>broken codec mirror</p>
       </header>
-      <ParamSlider field="amount" label="Amount" value={params.amount} maxValue={100} onChangeField={onChangeField} />
-      <ParamSlider field="quality" label="Quality" value={params.quality} maxValue={100} onChangeField={onChangeField} />
-      <ParamSlider field="tableChaos" label="Table Chaos" value={params.tableChaos} maxValue={100} onChangeField={onChangeField} />
+      <p className={styles.sectionTitle}>compression</p>
+      <ParamSlider field="compression" label="Compression" value={params.compression} maxValue={100} onChangeField={onChangeField} />
+      <ParamSlider field="brokenBytes" label="Broken Bytes" value={params.brokenBytes} maxValue={100} onChangeField={onChangeField} />
+      <p className={styles.sectionTitle}>quantization tables</p>
+      <ParamSlider field="qtcPosition" label="QTC Position" value={params.qtcPosition} minValue={1} maxValue={64} onChangeField={onChangeField} />
+      <ParamSlider field="qtcValue" label="QTC Value" value={params.qtcValue} maxValue={255} onChangeField={onChangeField} />
+      <ParamSlider field="breakingBytes" label="Breaking Bytes" value={params.breakingBytes} maxValue={64} onChangeField={onChangeField} />
+      <ParamSlider field="maxRandom" label="Max Random" value={params.maxRandom} minValue={1} maxValue={255} onChangeField={onChangeField} />
+      <p className={styles.sectionTitle}>stage</p>
       <RadioGroup className={styles.radioGroup} value={`${params.blockSize}`} onChange={handleBlockChange}>
         <Label className={styles.sliderLabel}>Block Size</Label>
         <div className={styles.radioRow}>
@@ -90,7 +100,6 @@ export const GlitchControls = ({ params, onChangeField, onChangeBlockSize, onRan
         </div>
       </RadioGroup>
       <ParamSlider field="chroma" label="Chroma" value={params.chroma} maxValue={100} onChangeField={onChangeField} />
-      <ParamSlider field="shift" label="Shift" value={params.shift} maxValue={100} onChangeField={onChangeField} />
       <div className={styles.seedRow}>
         <ParamSlider field="seed" label="Seed" value={params.seed} maxValue={9999} onChangeField={onChangeField} />
         <Button className={styles.seedButton} onPress={onRandomizeSeed} aria-label="シードをランダム化">

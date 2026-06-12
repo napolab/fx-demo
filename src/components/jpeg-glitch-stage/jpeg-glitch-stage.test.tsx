@@ -12,6 +12,6 @@ describe('JPEGGlitchStage', () => {
 
   test('renders the effect controls panel', async () => {
     render(<JPEGGlitchStage />);
-    await expect.element(page.getByRole('slider', { name: 'Amount' })).toBeInTheDocument();
+    await expect.element(page.getByRole('slider', { name: 'Compression' })).toBeInTheDocument();
   });
 });

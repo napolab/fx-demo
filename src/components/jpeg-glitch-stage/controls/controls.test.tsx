@@ -15,7 +15,7 @@ const noopProps = () => ({
 describe('GlitchControls', () => {
   test('exposes every parameter as an accessible control', async () => {
     render(<GlitchControls {...noopProps()} />);
-    for (const name of ['Amount', 'Quality', 'Table Chaos', 'Chroma', 'Shift', 'Seed']) {
+    for (const name of ['Compression', 'Broken Bytes', 'QTC Position', 'QTC Value', 'Breaking Bytes', 'Max Random', 'Chroma', 'Seed']) {
       await expect.element(page.getByRole('slider', { name })).toBeInTheDocument();
     }
     await expect.element(page.getByRole('radiogroup', { name: 'Block Size' })).toBeInTheDocument();

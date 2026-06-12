@@ -30,20 +30,37 @@ export const scaledQuantTables = (quality: number): Float32Array<ArrayBuffer> =>
   return new Float32Array(entries);
 };
 
-// "Table Chaos" — the aescripts plugin's breaking-bytes control: replace `count`
-// of the 64 entries in each table (count * 2 picks across the packed 128) with
-// seed-deterministic random steps. Corrupting the table itself produces ringing
-// and frequency-banded stripes that quality scaling alone can never make.
-export const corruptQuantTables = (tables: Float32Array<ArrayBuffer>, count: number, seed: number): Float32Array<ArrayBuffer> => {
+// The aescripts plugin's "breaking bytes" control: replace `count` of the 64
+// entries in each table (count * 2 picks across the packed 128) with
+// seed-deterministic random values in 1..maxRandom. Corrupting the table itself
+// produces ringing and frequency-banded stripes that quality scaling alone can
+// never make.
+export const corruptQuantTables = (tables: Float32Array<ArrayBuffer>, count: number, maxRandom: number, seed: number): Float32Array<ArrayBuffer> => {
   const picks = Math.max(0, Math.min(64, Math.round(count))) * 2;
   if (picks === 0) return new Float32Array(tables);
 
+  const ceiling = Math.max(1, Math.min(255, Math.round(maxRandom)));
   const result = new Float32Array(tables);
   for (const pick of Array.from({ length: picks }, (_, index) => index)) {
     const slot = hashCombine(seed + 1, pick * 2 + 1) % 128;
-    const step = Math.max(1, hashCombine(seed + 1, pick * 2 + 2) % 256) / 255;
+    const step = (1 + (hashCombine(seed + 1, pick * 2 + 2) % ceiling)) / 255;
     result[slot] = step;
   }
+
+  return result;
+};
+
+// The plugin's "QTC position / QTC value" control: overwrite one of the 64
+// table entries (same slot in luma and chroma) with an explicit value.
+// value 0 = override off.
+export const applyQTCOverride = (tables: Float32Array<ArrayBuffer>, position: number, value: number): Float32Array<ArrayBuffer> => {
+  const result = new Float32Array(tables);
+  const step = Math.min(255, Math.round(value));
+  if (step <= 0) return result;
+
+  const slot = Math.max(1, Math.min(64, Math.round(position))) - 1;
+  result[slot] = step / 255;
+  result[slot + 64] = step / 255;
 
   return result;
 };

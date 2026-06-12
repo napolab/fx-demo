@@ -3,7 +3,7 @@
 
 import { GLITCH_UNIFORM_FLOAT_COUNT, normalizeParams, packGlitchUniforms } from '../math/glitch-params';
 import { fitProcSize } from '../math/proc-size';
-import { corruptQuantTables, scaledQuantTables } from '../math/quant-table';
+import { applyQTCOverride, corruptQuantTables, scaledQuantTables } from '../math/quant-table';
 import type { BlockSize, FrameInput } from '../types';
 import { createBindGroups, type BindGroups } from './bind-groups';
 import { createPipelines, type Pipelines } from './pipelines';
@@ -95,11 +95,12 @@ export const createGlitchEngine = async (canvas: HTMLCanvasElement): Promise<Gli
   };
 
   const ensureQuantTables = (input: FrameInput): void => {
-    const key = `${input.quality}:${input.tableChaos}:${input.seed}`;
+    const key = `${input.compression}:${input.breakingBytes}:${input.maxRandom}:${input.qtcPosition}:${input.qtcValue}:${input.seed}`;
     if (key === state.lastQuantKey) return;
     state.lastQuantKey = key;
-    const chaosCount = Math.round((input.tableChaos / 100) * 64);
-    device.queue.writeBuffer(quantBuffer, 0, corruptQuantTables(scaledQuantTables(input.quality), chaosCount, input.seed));
+    const scaled = scaledQuantTables(normalizeParams(input).quality);
+    const broken = corruptQuantTables(scaled, input.breakingBytes, input.maxRandom, input.seed);
+    device.queue.writeBuffer(quantBuffer, 0, applyQTCOverride(broken, input.qtcPosition, input.qtcValue));
   };
 
   const writeUniforms = (input: FrameInput): void => {
@@ -112,7 +113,6 @@ export const createGlitchEngine = async (canvas: HTMLCanvasElement): Promise<Gli
         procHeight: state.ycbcrRaw.height,
         amount: normalized.amount,
         chroma: normalized.chroma,
-        shift: normalized.shift,
         seed: normalized.seed,
         camAspect: state.camAspect,
         canvasAspect: state.cssWidth / Math.max(1, state.cssHeight),
