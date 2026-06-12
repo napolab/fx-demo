@@ -68,6 +68,29 @@ export const sliderThumb = css({
   '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'stage.accent', outlineOffset: '2px' },
 });
 
+export const toggle = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '2',
+  fontSize: 'xs',
+  color: 'stage.text',
+  letterSpacing: 'wide',
+  textTransform: 'uppercase',
+  cursor: 'pointer',
+  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'stage.accent', outlineOffset: '2px' },
+});
+
+export const toggleBox = css({
+  width: '[14px]',
+  height: '[14px]',
+  borderRadius: 'sm',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'stage.line',
+  flexShrink: 0,
+  '&[data-selected]': { bg: 'stage.accent', borderColor: 'stage.accent' },
+});
+
 export const radioGroup = css({ display: 'flex', flexDirection: 'column', gap: '2' });
 
 export const radioRow = css({ display: 'flex', gap: '2', position: 'relative' });

@@ -5,12 +5,10 @@
 
 import { useCallback, useRef, useState } from 'react';
 
-import { GlitchControls, type NumericField } from './controls';
+import { GlitchControls, type BooleanField, type NumericField } from './controls';
 import * as styles from './styles.css';
 import { DEFAULT_PARAMS, type BlockSize, type GlitchParams, type GlitchStatus } from './types';
 import { useJPEGGlitch } from './use-jpeg-glitch';
-
-const SEED_RANGE = 10000;
 
 const noticeText = (status: GlitchStatus): string | undefined => {
   switch (status) {
@@ -41,14 +39,14 @@ export const JPEGGlitchStage = () => {
     setParams((previous) => ({ ...previous, blockSize }));
   }, []);
 
-  const handleRandomizeSeed = useCallback(() => {
-    setParams((previous) => ({ ...previous, seed: Math.floor(Math.random() * SEED_RANGE) }));
+  const handleToggleField = useCallback((field: BooleanField, value: boolean) => {
+    setParams((previous) => ({ ...previous, [field]: value }));
   }, []);
 
   return (
     <div className={styles.root} data-status={status}>
       <div className={styles.layoutRoot}>
-        <GlitchControls params={params} onChangeField={handleChangeField} onChangeBlockSize={handleChangeBlockSize} onRandomizeSeed={handleRandomizeSeed} />
+        <GlitchControls params={params} onChangeField={handleChangeField} onToggleField={handleToggleField} onChangeBlockSize={handleChangeBlockSize} />
         <div className={styles.stageRoot}>
           <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label="JPEG グリッチを適用したカメラ映像。左のパネルで破壊量を調整できます。" />
           {notice !== undefined && (

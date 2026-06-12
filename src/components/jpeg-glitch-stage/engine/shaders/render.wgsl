@@ -28,6 +28,8 @@ fn fs_main(frag: VertexOut) -> @location(0) vec4f {
   }
 
   let ycc = textureSampleLevel(glitch_tex, glitch_sampler, frag.uv, 0.0).xyz;
-  let rgb = ycbcr_to_rgb(ycc);
+  // Advanced settings: with YCbCrToRGB off, show the raw planes as RGB.
+  let raw = vec3f(ycc.x, ycc.y + 0.5, ycc.z + 0.5);
+  let rgb = select(raw, ycbcr_to_rgb(ycc), params.ycbcr_to_rgb > 0.5);
   return vec4f(clamp(rgb, vec3f(0.0), vec3f(1.0)), 1.0);
 }

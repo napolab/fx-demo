@@ -3,11 +3,12 @@
 
 import { GLITCH_UNIFORM_FLOAT_COUNT, normalizeParams, packGlitchUniforms } from '../math/glitch-params';
 import { fitProcSize } from '../math/proc-size';
-import { applyQTCOverride, corruptQuantTables, scaledQuantTables } from '../math/quant-table';
+import { buildBreakStream } from '../math/break-stream';
+import { corruptTableHalf, overrideTableEntry, scaledQuantTables } from '../math/quant-table';
 import type { BlockSize, FrameInput } from '../types';
 import { createBindGroups, type BindGroups } from './bind-groups';
 import { createPipelines, type Pipelines } from './pipelines';
-import { createCameraTexture, createLinearSampler, createNearestSampler, createQuantBuffer, createUniformBuffer, createYCbCrTexture, type FieldTexture } from './resources';
+import { createBreaksBuffer, createCameraTexture, createLinearSampler, createNearestSampler, createQuantBuffer, createUniformBuffer, createYCbCrTexture, type FieldTexture } from './resources';
 
 export type GlitchEngine = {
   frame: (input: FrameInput) => void;
@@ -26,6 +27,8 @@ type EngineState = {
   dpr: number;
   blockSize: BlockSize;
   lastQuantKey: string;
+  lastBreaksKey: string;
+  breaksBuffer: GPUBuffer;
   camera: FieldTexture;
   ycbcrRaw: FieldTexture;
   ycbcrGlitched: FieldTexture;
@@ -64,13 +67,14 @@ export const createGlitchEngine = async (canvas: HTMLCanvasElement): Promise<Gli
   const linearSampler = createLinearSampler(device);
   const nearestSampler = createNearestSampler(device);
 
-  const buildBindGroups = (camera: FieldTexture, ycbcrRaw: FieldTexture, ycbcrGlitched: FieldTexture): BindGroups =>
-    createBindGroups(device, pipelines, { uniformBuffer, quantBuffer, camera, ycbcrRaw, ycbcrGlitched, linearSampler, nearestSampler });
+  const buildBindGroups = (camera: FieldTexture, ycbcrRaw: FieldTexture, ycbcrGlitched: FieldTexture, breaksBuffer: GPUBuffer): BindGroups =>
+    createBindGroups(device, pipelines, { uniformBuffer, quantBuffer, camera, ycbcrRaw, ycbcrGlitched, breaksBuffer, linearSampler, nearestSampler });
 
   const initialProc = fitProcSize(canvas.clientWidth || 640, canvas.clientHeight || 360, 1, 16);
   const initialCamera = createCameraTexture(device, 2, 2);
   const initialRaw = createYCbCrTexture(device, initialProc.width, initialProc.height, 'ycbcr-raw');
   const initialGlitched = createYCbCrTexture(device, initialProc.width, initialProc.height, 'ycbcr-glitched');
+  const initialBreaks = createBreaksBuffer(device, (initialProc.width / BLOCK) * (initialProc.height / BLOCK));
 
   const state: EngineState = {
     cssWidth: canvas.clientWidth || 640,
@@ -78,10 +82,12 @@ export const createGlitchEngine = async (canvas: HTMLCanvasElement): Promise<Gli
     dpr: 1,
     blockSize: 16,
     lastQuantKey: '',
+    lastBreaksKey: '',
+    breaksBuffer: initialBreaks,
     camera: initialCamera,
     ycbcrRaw: initialRaw,
     ycbcrGlitched: initialGlitched,
-    bindGroups: buildBindGroups(initialCamera, initialRaw, initialGlitched),
+    bindGroups: buildBindGroups(initialCamera, initialRaw, initialGlitched, initialBreaks),
     camAspect: 16 / 9,
   };
 
@@ -91,16 +97,50 @@ export const createGlitchEngine = async (canvas: HTMLCanvasElement): Promise<Gli
     state.ycbcrGlitched.texture.destroy();
     state.ycbcrRaw = createYCbCrTexture(device, proc.width, proc.height, 'ycbcr-raw');
     state.ycbcrGlitched = createYCbCrTexture(device, proc.width, proc.height, 'ycbcr-glitched');
-    state.bindGroups = buildBindGroups(state.camera, state.ycbcrRaw, state.ycbcrGlitched);
+    state.breaksBuffer.destroy();
+    state.breaksBuffer = createBreaksBuffer(device, (proc.width / BLOCK) * (proc.height / BLOCK));
+    state.lastBreaksKey = '';
+    state.bindGroups = buildBindGroups(state.camera, state.ycbcrRaw, state.ycbcrGlitched, state.breaksBuffer);
+  };
+
+  const quantTablesFor = (input: FrameInput): Float32Array<ArrayBuffer> => {
+    const scaled = scaledQuantTables(normalizeParams(input).quality);
+    const luma = input.qtlEnabled ? overrideTableEntry(corruptTableHalf(scaled, 'luma', input.qtlBreakingBytes, input.qtlMaxRandom, input.qtlSeed), 'luma', input.qtlPosition, input.qtlValue) : scaled;
+    return input.qtcEnabled ? overrideTableEntry(corruptTableHalf(luma, 'chroma', input.qtcBreakingBytes, input.qtcMaxRandom, input.qtcSeed), 'chroma', input.qtcPosition, input.qtcValue) : luma;
   };
 
   const ensureQuantTables = (input: FrameInput): void => {
-    const key = `${input.compression}:${input.breakingBytes}:${input.maxRandom}:${input.qtcPosition}:${input.qtcValue}:${input.seed}`;
+    const key = [
+      input.compression,
+      input.qtlEnabled,
+      input.qtlPosition,
+      input.qtlValue,
+      input.qtlBreakingBytes,
+      input.qtlMaxRandom,
+      input.qtlSeed,
+      input.qtcEnabled,
+      input.qtcPosition,
+      input.qtcValue,
+      input.qtcBreakingBytes,
+      input.qtcMaxRandom,
+      input.qtcSeed,
+    ].join(':');
     if (key === state.lastQuantKey) return;
     state.lastQuantKey = key;
-    const scaled = scaledQuantTables(normalizeParams(input).quality);
-    const broken = corruptQuantTables(scaled, input.breakingBytes, input.maxRandom, input.seed);
-    device.queue.writeBuffer(quantBuffer, 0, applyQTCOverride(broken, input.qtcPosition, input.qtcValue));
+    device.queue.writeBuffer(quantBuffer, 0, quantTablesFor(input));
+  };
+
+  const ensureBreakStream = (input: FrameInput): void => {
+    const blocksX = state.ycbcrRaw.width / BLOCK;
+    const blocksY = state.ycbcrRaw.height / BLOCK;
+    const key = `${input.brokenBytes}:${input.glitchStart}:${input.glitchEnd}:${input.brokenSeed}:${blocksX}x${blocksY}`;
+    if (key === state.lastBreaksKey) return;
+    state.lastBreaksKey = key;
+    device.queue.writeBuffer(
+      state.breaksBuffer,
+      0,
+      buildBreakStream({ brokenBytes: input.brokenBytes, glitchStart: input.glitchStart, glitchEnd: input.glitchEnd, seed: input.brokenSeed, blocksX, blocksY }),
+    );
   };
 
   const writeUniforms = (input: FrameInput): void => {
@@ -111,12 +151,13 @@ export const createGlitchEngine = async (canvas: HTMLCanvasElement): Promise<Gli
       packGlitchUniforms({
         procWidth: state.ycbcrRaw.width,
         procHeight: state.ycbcrRaw.height,
-        amount: normalized.amount,
         chroma: normalized.chroma,
         seed: normalized.seed,
         camAspect: state.camAspect,
         canvasAspect: state.cssWidth / Math.max(1, state.cssHeight),
         cameraReady: input.cameraReady ? 1 : 0,
+        inverseDCT: input.inverseDCT ? 1 : 0,
+        ycbcrToRGB: input.ycbcrToRGB ? 1 : 0,
       }),
     );
   };
@@ -150,7 +191,7 @@ export const createGlitchEngine = async (canvas: HTMLCanvasElement): Promise<Gli
       state.camera.texture.destroy();
       state.camera = createCameraTexture(device, width, height);
       state.camAspect = width / height;
-      state.bindGroups = buildBindGroups(state.camera, state.ycbcrRaw, state.ycbcrGlitched);
+      state.bindGroups = buildBindGroups(state.camera, state.ycbcrRaw, state.ycbcrGlitched, state.breaksBuffer);
     }
     device.queue.copyExternalImageToTexture({ source: video }, { texture: state.camera.texture }, { width, height });
   };
@@ -162,6 +203,7 @@ export const createGlitchEngine = async (canvas: HTMLCanvasElement): Promise<Gli
         rebuildProcTextures();
       }
       ensureQuantTables(input);
+      ensureBreakStream(input);
       writeUniforms(input);
       encode();
     },
@@ -178,6 +220,7 @@ export const createGlitchEngine = async (canvas: HTMLCanvasElement): Promise<Gli
     updateCamera: updateCameraTexture,
     lost: device.lost,
     destroy: () => {
+      state.breaksBuffer.destroy();
       state.camera.texture.destroy();
       state.ycbcrRaw.texture.destroy();
       state.ycbcrGlitched.texture.destroy();

@@ -32,3 +32,7 @@ export const createUniformBuffer = (device: GPUDevice, byteLength: number): GPUB
   device.createBuffer({ label: 'glitch-params', size: byteLength, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
 
 export const createQuantBuffer = (device: GPUDevice): GPUBuffer => device.createBuffer({ label: 'quant-tables', size: 128 * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+
+// One vec4f per 8x8 block: the break-stream prefix from math/break-stream.
+export const createBreaksBuffer = (device: GPUDevice, blockCount: number): GPUBuffer =>
+  device.createBuffer({ label: 'break-stream', size: Math.max(1, blockCount) * 16, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });

@@ -6,7 +6,6 @@ import type { GlitchParams } from '../../types';
 export const GLITCH_UNIFORM_FLOAT_COUNT = 12;
 
 export type NormalizedParams = {
-  amount: number;
   chroma: number;
   /** IJG quality (1..100) derived from the plugin-style compression ratio. */
   quality: number;
@@ -14,22 +13,22 @@ export type NormalizedParams = {
 };
 
 export const normalizeParams = (params: GlitchParams): NormalizedParams => ({
-  amount: params.brokenBytes / 100,
   chroma: params.chroma / 100,
   quality: Math.max(1, 100 - Math.round(params.compression)),
-  seed: params.seed,
+  seed: params.brokenSeed,
 });
 
 export type GlitchUniformInput = {
   procWidth: number;
   procHeight: number;
-  amount: number;
   chroma: number;
   seed: number;
   camAspect: number;
   canvasAspect: number;
   cameraReady: number;
+  inverseDCT: number;
+  ycbcrToRGB: number;
 };
 
 export const packGlitchUniforms = (input: GlitchUniformInput): Float32Array<ArrayBuffer> =>
-  new Float32Array([input.procWidth, input.procHeight, input.amount, input.chroma, input.seed, input.camAspect, input.canvasAspect, input.cameraReady, 0, 0, 0, 0]);
+  new Float32Array([input.procWidth, input.procHeight, input.chroma, input.seed, input.camAspect, input.canvasAspect, input.cameraReady, input.inverseDCT, input.ycbcrToRGB, 0, 0, 0]);

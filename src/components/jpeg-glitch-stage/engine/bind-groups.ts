@@ -16,6 +16,7 @@ export type BindGroupInputs = {
   camera: FieldTexture;
   ycbcrRaw: FieldTexture;
   ycbcrGlitched: FieldTexture;
+  breaksBuffer: GPUBuffer;
   linearSampler: GPUSampler;
   nearestSampler: GPUSampler;
 };
@@ -39,6 +40,7 @@ export const createBindGroups = (device: GPUDevice, pipelines: Pipelines, inputs
       { binding: 1, resource: inputs.ycbcrRaw.view },
       { binding: 2, resource: inputs.ycbcrGlitched.view },
       { binding: 3, resource: { buffer: inputs.quantBuffer } },
+      { binding: 4, resource: { buffer: inputs.breaksBuffer } },
     ],
   }),
   render: device.createBindGroup({

@@ -3,13 +3,14 @@
 
 struct GlitchParams {
   proc_size: vec2f,
-  amount: f32,
   chroma: f32,
   seed: f32,
   cam_aspect: f32,
   canvas_aspect: f32,
   camera_ready: f32,
-  _pad0: vec2f,
+  inverse_dct: f32,
+  ycbcr_to_rgb: f32,
+  _pad0: f32,
   _pad1: vec2f,
 };
 
