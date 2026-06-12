@@ -5,5 +5,16 @@
   "singleQuote": true,
   "semi": true,
   "trailingComma": "all",
-  "ignorePatterns": ["styled-system/**", ".open-next/**", ".next/**", "migrations/**", "src/app/(payload)/**", "src/payload-types.ts", "cloudflare-env.d.ts", ".claude/**", "**/*.md"]
+  "ignorePatterns": [
+    "public/mediapipe/**",
+    "styled-system/**",
+    ".open-next/**",
+    ".next/**",
+    "migrations/**",
+    "src/app/(payload)/**",
+    "src/payload-types.ts",
+    "cloudflare-env.d.ts",
+    ".claude/**",
+    "**/*.md"
+  ]
 }
