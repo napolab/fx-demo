@@ -3,7 +3,7 @@
 
 import { GLITCH_UNIFORM_FLOAT_COUNT, normalizeParams, packGlitchUniforms } from '../math/glitch-params';
 import { fitProcSize } from '../math/proc-size';
-import { scaledQuantTables } from '../math/quant-table';
+import { corruptQuantTables, scaledQuantTables } from '../math/quant-table';
 import type { BlockSize, FrameInput } from '../types';
 import { createBindGroups, type BindGroups } from './bind-groups';
 import { createPipelines, type Pipelines } from './pipelines';
@@ -25,7 +25,7 @@ type EngineState = {
   cssHeight: number;
   dpr: number;
   blockSize: BlockSize;
-  lastQuality: number;
+  lastQuantKey: string;
   camera: FieldTexture;
   ycbcrRaw: FieldTexture;
   ycbcrGlitched: FieldTexture;
@@ -77,7 +77,7 @@ export const createGlitchEngine = async (canvas: HTMLCanvasElement): Promise<Gli
     cssHeight: canvas.clientHeight || 360,
     dpr: 1,
     blockSize: 16,
-    lastQuality: -1,
+    lastQuantKey: '',
     camera: initialCamera,
     ycbcrRaw: initialRaw,
     ycbcrGlitched: initialGlitched,
@@ -94,10 +94,12 @@ export const createGlitchEngine = async (canvas: HTMLCanvasElement): Promise<Gli
     state.bindGroups = buildBindGroups(state.camera, state.ycbcrRaw, state.ycbcrGlitched);
   };
 
-  const ensureQuantTables = (quality: number): void => {
-    if (quality === state.lastQuality) return;
-    state.lastQuality = quality;
-    device.queue.writeBuffer(quantBuffer, 0, scaledQuantTables(quality));
+  const ensureQuantTables = (input: FrameInput): void => {
+    const key = `${input.quality}:${input.tableChaos}:${input.seed}`;
+    if (key === state.lastQuantKey) return;
+    state.lastQuantKey = key;
+    const chaosCount = Math.round((input.tableChaos / 100) * 64);
+    device.queue.writeBuffer(quantBuffer, 0, corruptQuantTables(scaledQuantTables(input.quality), chaosCount, input.seed));
   };
 
   const writeUniforms = (input: FrameInput): void => {
@@ -159,7 +161,7 @@ export const createGlitchEngine = async (canvas: HTMLCanvasElement): Promise<Gli
         state.blockSize = input.blockSize;
         rebuildProcTextures();
       }
-      ensureQuantTables(input.quality);
+      ensureQuantTables(input);
       writeUniforms(input);
       encode();
     },

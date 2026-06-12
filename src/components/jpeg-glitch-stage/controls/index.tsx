@@ -9,7 +9,7 @@ import { Button, Label, Radio, RadioGroup, Slider, SliderOutput, SliderThumb, Sl
 import * as styles from './styles.css';
 import type { BlockSize, GlitchParams } from '../types';
 
-export type NumericField = 'amount' | 'quality' | 'chroma' | 'shift' | 'seed';
+export type NumericField = 'amount' | 'quality' | 'tableChaos' | 'chroma' | 'shift' | 'seed';
 
 export type GlitchControlsProps = {
   params: GlitchParams;
@@ -74,6 +74,7 @@ export const GlitchControls = ({ params, onChangeField, onChangeBlockSize, onRan
       </header>
       <ParamSlider field="amount" label="Amount" value={params.amount} maxValue={100} onChangeField={onChangeField} />
       <ParamSlider field="quality" label="Quality" value={params.quality} maxValue={100} onChangeField={onChangeField} />
+      <ParamSlider field="tableChaos" label="Table Chaos" value={params.tableChaos} maxValue={100} onChangeField={onChangeField} />
       <RadioGroup className={styles.radioGroup} value={`${params.blockSize}`} onChange={handleBlockChange}>
         <Label className={styles.sliderLabel}>Block Size</Label>
         <div className={styles.radioRow}>

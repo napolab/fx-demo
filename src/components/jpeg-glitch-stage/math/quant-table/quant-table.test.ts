@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { BASE_CHROMA_TABLE, BASE_LUMA_TABLE, scaledQuantTables } from '.';
+import { BASE_CHROMA_TABLE, BASE_LUMA_TABLE, corruptQuantTables, scaledQuantTables } from '.';
 
 describe('scaledQuantTables', () => {
   test('packs luma then chroma, 128 entries total', () => {
@@ -37,5 +37,43 @@ describe('scaledQuantTables', () => {
   test('quality is clamped into 1..100', () => {
     expect(Array.from(scaledQuantTables(0))).toEqual(Array.from(scaledQuantTables(1)));
     expect(Array.from(scaledQuantTables(120))).toEqual(Array.from(scaledQuantTables(100)));
+  });
+});
+
+describe('corruptQuantTables', () => {
+  const base = (): Float32Array<ArrayBuffer> => scaledQuantTables(50);
+
+  test('count 0 returns the tables unchanged', () => {
+    expect(Array.from(corruptQuantTables(base(), 0, 1024))).toEqual(Array.from(base()));
+  });
+
+  test('is deterministic for the same seed', () => {
+    expect(Array.from(corruptQuantTables(base(), 16, 777))).toEqual(Array.from(corruptQuantTables(base(), 16, 777)));
+  });
+
+  test('different seeds corrupt differently', () => {
+    expect(Array.from(corruptQuantTables(base(), 16, 1))).not.toEqual(Array.from(corruptQuantTables(base(), 16, 2)));
+  });
+
+  test('changes at most count entries per table (count * 2 total)', () => {
+    const original = base();
+    const corrupted = corruptQuantTables(original, 8, 42);
+    const changed = Array.from(corrupted).filter((value, index) => value !== original[index]);
+    expect(changed.length).toBeLessThanOrEqual(16);
+    expect(changed.length).toBeGreaterThan(0);
+  });
+
+  test('corrupted entries stay within (0, 1]', () => {
+    for (const value of corruptQuantTables(base(), 64, 9)) {
+      expect(value).toBeGreaterThan(0);
+      expect(value).toBeLessThanOrEqual(1);
+    }
+  });
+
+  test('does not mutate the input tables', () => {
+    const original = base();
+    const snapshot = Array.from(original);
+    corruptQuantTables(original, 32, 5);
+    expect(Array.from(original)).toEqual(snapshot);
   });
 });

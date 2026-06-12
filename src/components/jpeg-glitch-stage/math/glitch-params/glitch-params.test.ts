@@ -4,7 +4,7 @@ import { GLITCH_UNIFORM_FLOAT_COUNT, normalizeParams, packGlitchUniforms } from 
 
 describe('normalizeParams', () => {
   test('maps 0–100 sliders into 0–1 shader units', () => {
-    const normalized = normalizeParams({ amount: 50, quality: 30, blockSize: 16, chroma: 100, shift: 0, seed: 777 });
+    const normalized = normalizeParams({ amount: 50, quality: 30, tableChaos: 0, blockSize: 16, chroma: 100, shift: 0, seed: 777 });
     expect(normalized.amount).toBeCloseTo(0.5);
     expect(normalized.chroma).toBeCloseTo(1);
     expect(normalized.shift).toBeCloseTo(0);

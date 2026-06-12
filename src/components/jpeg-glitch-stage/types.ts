@@ -8,6 +8,8 @@ export type GlitchParams = {
   amount: number;
   /** 0–100: JPEG quality. Lower = harsher quantization crush. */
   quality: number;
+  /** 0–100: how many quantization-table entries get replaced with random steps. */
+  tableChaos: number;
   /** Effective DCT block size in canvas pixels. */
   blockSize: BlockSize;
   /** 0–100: chroma subsampling collapse. */
@@ -27,6 +29,7 @@ export type FrameInput = GlitchParams & {
 export const DEFAULT_PARAMS = {
   amount: 40,
   quality: 30,
+  tableChaos: 0,
   blockSize: 16,
   chroma: 35,
   shift: 15,

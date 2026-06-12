@@ -1,3 +1,5 @@
+import { hashCombine } from '../hash';
+
 // JPEG Annex K base quantization tables + IJG quality scaling.
 // Entries are emitted in 0..1 units (divided by 255) because the GPU pipeline
 // runs the DCT on 0..1 YCbCr signals instead of JPEG's 0..255.
@@ -26,4 +28,22 @@ export const scaledQuantTables = (quality: number): Float32Array<ArrayBuffer> =>
   const entries = [...BASE_LUMA_TABLE, ...BASE_CHROMA_TABLE].map((base) => scaleEntry(base, scale));
 
   return new Float32Array(entries);
+};
+
+// "Table Chaos" — the aescripts plugin's breaking-bytes control: replace `count`
+// of the 64 entries in each table (count * 2 picks across the packed 128) with
+// seed-deterministic random steps. Corrupting the table itself produces ringing
+// and frequency-banded stripes that quality scaling alone can never make.
+export const corruptQuantTables = (tables: Float32Array<ArrayBuffer>, count: number, seed: number): Float32Array<ArrayBuffer> => {
+  const picks = Math.max(0, Math.min(64, Math.round(count))) * 2;
+  if (picks === 0) return new Float32Array(tables);
+
+  const result = new Float32Array(tables);
+  for (const pick of Array.from({ length: picks }, (_, index) => index)) {
+    const slot = hashCombine(seed + 1, pick * 2 + 1) % 128;
+    const step = Math.max(1, hashCombine(seed + 1, pick * 2 + 2) % 256) / 255;
+    result[slot] = step;
+  }
+
+  return result;
 };
