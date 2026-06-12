@@ -1,6 +1,6 @@
 # Feature Index Hub — design
 
-`/` を Liquid Mirror 単体から、5 つのカメラ FX を束ねるエディトリアル番号付きインデックスへ作り替える。Liquid Mirror は `/liquid-mirror` へ退避する。
+`/` を Liquid Mirror 単体から、カメラ映像を素材にする FX 群を束ねるエディトリアル番号付きインデックスへ作り替える。Liquid Mirror は `/liquid-mirror` へ退避する。
 
 ## 背景
 
@@ -14,13 +14,14 @@
 | 各 FX の見せ方 | 静止画サムネ（ハブ自体はカメラを起動しない） |
 | レイアウト | エディトリアル番号付きリスト |
 | サムネ素材 | Codex CLI `$imagegen` で各 FX の世界観に合う抽象スチルを生成し `public/thumbs/` にコミット |
+| 掲載対象 | **main にマージ済みの 3 FX のみ**（Liquid Mirror / JPEG Glitch / Trace）。PolyTrace・Bounding Mask は別ブランチで作業中・main 未マージのため除外し、各マージ時に `content.ts` へ追記する |
 
 ## ルーティング / ファイル構成
 
 ```
 src/app/(frontend)/
 ├── page.tsx                 ← 新規: 集約インデックス (Server Component)
-├── content.ts               ← 新規: 5 作品メタの単一ソース (satisfies で型付け)
+├── content.ts               ← 新規: 作品メタの単一ソース (satisfies で型付け)
 ├── _components/
 │   └── effect-index/
 │       ├── index.tsx        ← 番号付きリスト本体
@@ -30,12 +31,12 @@ src/app/(frontend)/
     └── page.tsx             ← 旧 (frontend)/page.tsx をそのまま移設（metadata 込み）
 
 public/thumbs/
-├── liquid-mirror.webp
-├── jpeg-glitch.webp
-├── polytrace.webp
-├── trace.webp
-└── bounding-mask.webp
+├── liquid-mirror.jpg
+├── jpeg-glitch.jpg
+└── trace.jpg
 ```
+
+> webp を出力できるエンコーダ（cwebp / ImageMagick）がローカルに無く、本 repo に Cloudflare 画像最適化基盤も無いため、配信形式は **JPEG（640×400, 品質 82, 各 50–85KB）** とする。webp 化基盤が入った時点で差し替え可。
 
 - `liquid-mirror/page.tsx` は現 `page.tsx` を内容変更なしで移設（import の相対パスのみ階層に合わせて調整）。Liquid Mirror の `metadata` / `viewport` もこのファイルへ移る。
 - 新 `/` の `page.tsx` はハブ専用 `metadata`（コレクション全体の説明）を持つ。
@@ -51,20 +52,20 @@ export type EffectEntry = {
   href: string;     // "/liquid-mirror"
   tagline: string;  // 1 文の「どんな FX か」
   doing: string;    // 1 文の「何ができるか」
-  thumb: string;    // "/thumbs/liquid-mirror.webp"
+  thumb: string;    // "/thumbs/liquid-mirror.jpg"
   thumbAlt: string; // スクリーンリーダ用の代替テキスト
 };
 
-export const effects = [ /* 01..05 */ ] satisfies readonly EffectEntry[];
+export const effects = [ /* 01..03 (main にマージ済みの FX のみ) */ ] satisfies readonly EffectEntry[];
 ```
 
-5 作品の文言（metadata 由来、確定）:
+掲載 3 作品の文言（metadata 由来、確定）:
 
-1. **Liquid Mirror** — WebGPU/WGSL stable-fluids の液体鏡。webcam が液体になり、ポインタで攪拌すると絹のような渦が流れる。
-2. **JPEG Glitch** — AE の JPEG Glitch をライブカメラで再現。YCbCr / 8×8 DCT / 量子化を WebGPU 上で実際に通し係数を破壊する。
-3. **PolyTrace** — AE Polytrace 再現。映像を WGSL で特徴点抽出し Delaunay 三角形のローポリメッシュとして p5.js が描画する。
-4. **Trace** — WebGPU/WGSL + p5.js のトレース & ブロブトラッキング。身体輪郭をモノクロのワイヤーフレームでトレースし残像と HUD を重ねる。
-5. **Bounding Mask** — MediaPipe ポーズ検出で顔・手・腰・脚を捉え、選んだ部位を単色マスクで覆う。webcam / アップロード動画にボックス・シルエット 2 形状を切替。
+1. **Liquid Mirror** (`/liquid-mirror`) — WebGPU/WGSL stable-fluids の液体鏡。webcam が液体になり、ポインタで攪拌すると絹のような渦が流れる。
+2. **JPEG Glitch** (`/jpeg-glitch`) — AE の JPEG Glitch をライブカメラで再現。YCbCr / 8×8 DCT / 量子化を WebGPU 上で実際に通し係数を破壊する。
+3. **Trace** (`/trace`) — WebGPU/WGSL + p5.js のトレース & ブロブトラッキング。身体輪郭をモノクロのワイヤーフレームでトレースし残像と HUD を重ねる。
+
+> 未マージのため除外（各ブランチのマージ時に追記）: **PolyTrace**（Delaunay ローポリトレース）、**Bounding Mask**（MediaPipe 部位カラーマスキング）。
 
 ## UI 構造 / セマンティクス
 
@@ -72,7 +73,7 @@ export const effects = [ /* 01..05 */ ] satisfies readonly EffectEntry[];
 <main>                                    bg: stage.bg
   <section>  ← hero
     <h1>FLUID SIMULATION</h1>
-    <p>カメラを素材にする 5 つの実験</p>
+    <p>カメラを素材にする {effects.length} つの実験</p>  ← 件数は content から導出
   </section>
 
   <section>  ← index
@@ -111,12 +112,12 @@ export const effects = [ /* 01..05 */ ] satisfies readonly EffectEntry[];
 
 ## サムネ生成（`$imagegen`）
 
-各 FX の視覚的特徴に沿った抽象スチルを Codex headless で生成 → `~/.codex/generated_images/` から `public/thumbs/<slug>.webp` へ取り込み（macOS `sips` でリサイズ/変換、横 ~640px 目安）。被写体は人物ではなく FX のテクスチャ（渦/DCT ブロック/三角網/ワイヤー/単色マスク）を抽象表現し、カメラ映像・プライバシー懸念を排除する。
+各 FX の視覚的特徴に沿った抽象スチルを Codex headless で生成 → `~/.codex/generated_images/` から `public/thumbs/<slug>.jpg` へ取り込み（macOS `sips -Z 640` でリサイズ + JPEG 変換）。被写体は人物ではなく FX のテクスチャ（渦/DCT ブロック/ワイヤー）を抽象表現し、カメラ映像・プライバシー懸念を排除する。Codex は読み取り専用サンドボックスで動くため生成先 worktree へ直接 `cp` できず、生成物は `~/.codex/generated_images/<uuid>/` に残る点に注意（手動で取り込む）。
 
 ## テスト
 
 `effect-index.test.tsx`（vitest + browser mode 方針）:
-- 5 作品ぶんの `<a>` が描画され、各 `href` が content.ts と一致する。
+- content.ts の全エントリぶんの `<a>` が描画され、各 `href` が content.ts と一致する。
 - 各リンクのアクセシブルネームが作品名である。
 - 見出し階層（h1 1 個、各作品 h3）が満たされる。
 - 各サムネ `<img>` に空でない `alt` がある。

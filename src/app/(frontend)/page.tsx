@@ -1,42 +1,68 @@
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
 import { css } from 'styled-system/css';
 
-import { FluidStage } from '../../components/fluid-stage';
+import { EffectIndex } from './_components/effect-index';
+import { effects } from './content';
 
 import type { Metadata, Viewport } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Liquid Mirror — fluid simulation',
-  description: 'WebGPU/WGSL stable-fluids VJ canvas. Webcam が液体の鏡になり、ポインタで攪拌すると絹のような渦が流れます。',
+  title: 'fluid-simulation — camera FX index',
+  description: 'カメラ映像を素材にする WebGPU/WGSL の VJ エフェクト集。Liquid Mirror・JPEG Glitch・Trace を収録した実験のインデックス。',
 };
 
 export const viewport: Viewport = {
   themeColor: '#04060a',
 };
 
-const main = css({ minHeight: '100dvh', bg: 'stage.bg' });
-const srOnly = css({ srOnly: true });
-const fallback = css({
-  position: 'fixed',
-  inset: '0',
-  display: 'grid',
-  placeItems: 'center',
+const main = css({
+  minHeight: '100dvh',
   bg: 'stage.bg',
+  color: 'stage.text',
+  paddingInline: '5',
+  paddingBlock: '16',
+  '@media (min-width: 768px)': {
+    paddingInline: '10',
+    paddingBlock: '24',
+  },
+});
+
+const inner = css({
+  width: '100%',
+  maxWidth: '4xl',
+  marginInline: 'auto',
+});
+
+const hero = css({
+  marginBottom: '12',
+});
+
+const heroTitle = css({
+  margin: '0',
+  fontSize: '4xl',
+  fontWeight: 'bold',
+  letterSpacing: 'widest',
+  lineHeight: 'tight',
+  color: 'stage.text',
+  '@media (min-width: 768px)': {
+    fontSize: '6xl',
+  },
+});
+
+const heroLead = css({
+  marginBlock: '3 0',
+  fontSize: 'md',
   color: 'stage.dim',
-  fontSize: 'sm',
 });
 
 const Home = () => (
   <main className={main}>
-    <section>
-      <h1 className={srOnly}>Liquid Mirror — WebGPU 流体シミュレーション</h1>
-      <ErrorBoundary fallback={<p className={fallback}>流体シミュレーションの初期化に失敗しました。再読み込みしてください。</p>}>
-        <Suspense fallback={<div className={fallback} aria-hidden="true" />}>
-          <FluidStage />
-        </Suspense>
-      </ErrorBoundary>
-    </section>
+    <div className={inner}>
+      <section className={hero}>
+        <h1 className={heroTitle}>FLUID SIMULATION</h1>
+        <p className={heroLead}>カメラを素材にする {effects.length} つの実験</p>
+      </section>
+      <EffectIndex />
+    </div>
   </main>
 );
 
