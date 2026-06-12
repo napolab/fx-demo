@@ -1,7 +1,6 @@
-import { Link } from 'react-aria-components';
-
 import { effects } from '../../content';
 
+import { EffectLink } from './effect-link';
 import * as styles from './styles.css';
 
 export const EffectIndex = () => (
@@ -17,9 +16,9 @@ export const EffectIndex = () => (
             <img className={styles.thumb} src={effect.thumb} alt={effect.thumbAlt} width={640} height={400} loading="lazy" decoding="async" />
             <div className={styles.body}>
               <h3 className={styles.title}>
-                <Link className={styles.link} href={effect.href}>
+                <EffectLink className={styles.link} href={effect.href}>
                   {effect.name}
-                </Link>
+                </EffectLink>
               </h3>
               <p className={styles.tagline}>{effect.tagline}</p>
               <p className={styles.doing}>{effect.doing}</p>
