@@ -9,7 +9,7 @@ Design function / method parameter types and component prop types from the **fun
 ## The rule
 
 - Optional values use `T` (= `T | undefined`) only. Never `T | null` and never `T | null | undefined` in a function's input contract.
-- `null` is an upstream / wire-format concern (Payload CMS, DB NULLs, JSON APIs). Coerce at the boundary — the _caller's_ responsibility — with `value ?? undefined`.
+- `null` is an upstream / wire-format concern (DB NULLs, JSON APIs, codegen types). Coerce at the boundary — the _caller's_ responsibility — with `value ?? undefined`.
 - This applies to every input type: component props, function parameters, method signatures, type aliases used as inputs.
 
 ## Why
@@ -22,7 +22,7 @@ Where the boundary is depends on the upstream:
 
 | Upstream                             | Where to coerce                               |
 | ------------------------------------ | --------------------------------------------- |
-| Payload CMS generated types          | At the call site of the consuming component   |
+| Codegen / generated types            | At the call site of the consuming component   |
 | External API response                | In the fetch wrapper / parser                 |
 | URL search params                    | In the route handler / page loader            |
 | Form input via react-hook-form / etc | At submit, before passing into business logic |
@@ -40,7 +40,7 @@ const VideoEmbed = ({ caption }: Props) => caption ? <p>{caption}</p> : null;
 ```tsx
 // BAD — function accommodating caller's nullable shape
 type Props = { caption?: string | null };
-//                       ^^^^^^^^^^^^^^^^ leaks Payload's NULL into every consumer
+//                       ^^^^^^^^^^^^^^^^ leaks the upstream NULL into every consumer
 
 // BAD — same issue, more verbose
 type Props = { caption: string | null | undefined };
@@ -54,7 +54,7 @@ type Props = { caption: string | null | undefined };
 
 ## Does NOT apply to
 
-- **Payload generated types** (`src/payload-types.ts`) — never edit; coerce at the consumer.
+- **Codegen / generated types** — never edit; coerce at the consumer.
 - **External API response / DB row types** — those legitimately describe upstream reality where `null` is the wire format. Don't rewrite them — coerce when consuming.
 - **Discriminated-union member shapes** where `null` is a deliberate sentinel distinct from `undefined`. Rare; usually a separate variant is cleaner:
 

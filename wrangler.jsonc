@@ -22,20 +22,7 @@
       "service": "fluid-simulation",
     },
   ],
-  // Payload CMS database.
-  "d1_databases": [
-    {
-      "binding": "D1",
-      "database_id": "DATABASE_ID",
-      "database_name": "fluid-simulation",
-    },
-  ],
   "r2_buckets": [
-    // Payload media uploads.
-    {
-      "binding": "R2",
-      "bucket_name": "fluid-simulation-media",
-    },
     // OpenNext ISR / incremental cache.
     {
       "binding": "NEXT_INC_CACHE_R2_BUCKET",

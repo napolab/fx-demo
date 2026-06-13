@@ -2,9 +2,8 @@
 
 - pnpm で setup すること
 - Cloudflare Worker を利用すること
-- next.js, opennext, payloadcmsを利用すること
+- next.js, opennext を利用すること
 - opennext では ISR を利用すること
-- seed は payload cms の bin に登録すること
 - react-aria-components, panda css を利用すること
 - pnpm fmt で pnpm oxlint, pnpm oxfmt --write を実行すること
 - pnpm lint で pnpm oxlint, pnpm oxfmt --check を実行すること
@@ -46,6 +45,9 @@
 issue, .claude/rules, skills やコードが参考になる。
 
 <--- ここから --->
+
+
+
 
 <--- ここまで --->
 
@@ -96,5 +98,5 @@ UI を実装する際は UI rules に従うこと。
 この時点で Next.js に移植する。`src/components` に再利用可能な形で UI を作り `(design-system)` group route を作ってそこに配置し確認を取ること。環境が development 以外の時は notFound を返すだけのページになっていることが好ましい。
 
 ### 4. ページを実装する
-最後に payload cms 連携を行うが layout 決定のためにダミーデータで実装を行い、ユーザー、ステークホルダーに確認を取ること。
+最後に layout 決定のためにダミーデータで実装を行い、ユーザー、ステークホルダーに確認を取ること。
 基本的には step3 で作成した component の配置レイアウトを決定するのがこの段階の目的であることを忘れないこと。

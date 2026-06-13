@@ -236,16 +236,5 @@
       }
     }
   ],
-  "ignorePatterns": [
-    "public/mediapipe/**",
-    "dist/**",
-    "coverage/**",
-    "styled-system/**",
-    ".open-next/**",
-    ".next/**",
-    "migrations/**",
-    "src/app/(payload)/**",
-    "src/payload-types.ts",
-    "cloudflare-env.d.ts"
-  ]
+  "ignorePatterns": ["public/mediapipe/**", "dist/**", "coverage/**", "styled-system/**", ".open-next/**", ".next/**", "cloudflare-env.d.ts"]
 }
