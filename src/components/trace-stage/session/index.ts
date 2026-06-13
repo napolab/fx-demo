@@ -28,7 +28,10 @@ export type TraceSession = {
   setMaskThreshold: (value: number) => void;
   // Toggles the sumi-ink face censor drawn over the detected face box.
   setMaskFace: (value: boolean) => void;
-  // Records the composited stage (video + overlay) to a downloaded WebM.
+  // Records the composited stage (video + overlay) to a downloaded WebM. For a
+  // user-provided video file the take is bounded to a single pass — rewound to
+  // the first frame on start, auto-stopped at the last. The webcam, having no
+  // end frame, records until stopRecording.
   startRecording: () => void;
   stopRecording: () => void;
   isRecording: () => boolean;
@@ -172,6 +175,49 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     maskFace: state.maskFace,
   });
 
+  // Source kind drives recording bounds: a file (objectURL set) records exactly
+  // one pass; the webcam (no objectURL) records until the caller stops it.
+  const isFileSource = (): boolean => state.objectURL !== undefined;
+
+  // One composite to size the (otherwise 300×150 default) recording canvas to
+  // the live backing store before captureStream/bitrate are read at start.
+  const primeCompositor = (): void => compositor.composite(canvas, state.overlay?.element());
+
+  // Resolves once the playhead has settled on the first frame, so the first
+  // recorded frame is the true start frame and not the pre-rewind position.
+  const seekToStart = (): Promise<void> => {
+    const video = state.video;
+    if (video === undefined || video.currentTime === 0) return Promise.resolve();
+    const settled = new Promise<void>((resolve) => {
+      const onSeeked = (): void => {
+        video.removeEventListener('seeked', onSeeked);
+        resolve();
+      };
+      video.addEventListener('seeked', onSeeked);
+    });
+    video.currentTime = 0;
+    return settled;
+  };
+
+  // Captures the composite from the file's first frame to its last. Looping is
+  // suspended for the take; the 'ended' listener (attached at load) stops the
+  // recorder and restores the looping preview.
+  const startFileRecording = async (): Promise<void> => {
+    const video = state.video;
+    if (video === undefined) return;
+    video.loop = false;
+    await seekToStart();
+    if (state.disposed) return;
+    primeCompositor();
+    recorder.start();
+    try {
+      await video.play();
+    } catch {
+      // Playback can be interrupted (e.g. the tab is hidden); the recorder
+      // still captures whatever the compositor draws.
+    }
+  };
+
   const detect = (timestampMs: number): void => {
     if (state.segmenter === undefined || state.video === undefined || segContext === null) return;
     segContext.drawImage(state.video, 0, 0, SEG_WIDTH, SEG_HEIGHT);
@@ -297,7 +343,8 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
   };
 
   // Swap the active source to a local video file. The webcam stream (if any)
-  // is stopped; the file loops like VJ footage.
+  // is stopped; the file loops like VJ footage for preview, but a recording
+  // take plays it through exactly once (see startRecording).
   const loadVideoFile = async (file: File): Promise<void> => {
     if (state.disposed || state.engine === undefined) return;
     const url = URL.createObjectURL(file);
@@ -305,6 +352,15 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     video.muted = true;
     video.playsInline = true;
     video.loop = true;
+    // End of a bounded take: stop the recorder, then resume the looping preview
+    // from the top. Idle (loop=true) playback never reaches 'ended'.
+    video.addEventListener('ended', () => {
+      if (!recorder.isActive()) return;
+      recorder.stop();
+      video.loop = true;
+      video.currentTime = 0;
+      void video.play();
+    });
     video.src = url;
     try {
       await video.play();
@@ -350,10 +406,20 @@ export const createTraceSession = (canvas: HTMLCanvasElement, overlayContainer: 
     },
     startRecording() {
       if (state.disposed) return;
-      recorder.start();
+      // Webcam or no source yet: unbounded manual recording.
+      if (state.video === undefined || !isFileSource()) {
+        primeCompositor();
+        recorder.start();
+        return;
+      }
+      // File source: rewind to the first frame and record one pass.
+      void startFileRecording();
     },
     stopRecording() {
       recorder.stop();
+      // A manual early stop on a file take: restore the looping preview that
+      // startFileRecording suspended.
+      if (state.video !== undefined && isFileSource()) state.video.loop = true;
     },
     isRecording() {
       return recorder.isActive();

@@ -16,6 +16,18 @@ const MIME_CANDIDATES = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'vide
 
 const pickMimeType = (): string | undefined => MIME_CANDIDATES.find((type) => MediaRecorder.isTypeSupported(type));
 
+// Bitrate target. MediaRecorder otherwise pins ~2.5 Mbps regardless of
+// resolution, which mushes fine wireframes and film grain on HD canvases. We
+// scale with pixels × fps at a high-quality bits-per-pixel and clamp the range.
+const BITS_PER_PIXEL = 0.2;
+const MIN_BITS_PER_SECOND = 4_000_000;
+const MAX_BITS_PER_SECOND = 40_000_000;
+
+const resolveBitrate = (canvas: HTMLCanvasElement, fps: number): number => {
+  const raw = canvas.width * canvas.height * fps * BITS_PER_PIXEL;
+  return Math.round(Math.min(Math.max(raw, MIN_BITS_PER_SECOND), MAX_BITS_PER_SECOND));
+};
+
 const downloadBlob = (blob: Blob, filename: string): void => {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -35,7 +47,9 @@ export const createCanvasRecorder = (canvas: HTMLCanvasElement, fps: number, fil
       if (state.recorder !== undefined) return;
       const stream = canvas.captureStream(fps);
       const mimeType = pickMimeType();
-      const recorder = mimeType !== undefined ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      const videoBitsPerSecond = resolveBitrate(canvas, fps);
+      const options = mimeType !== undefined ? { mimeType, videoBitsPerSecond } : { videoBitsPerSecond };
+      const recorder = new MediaRecorder(stream, options);
       state.chunks = [];
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) state.chunks = [...state.chunks, event.data];
