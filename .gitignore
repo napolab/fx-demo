@@ -31,3 +31,7 @@ styled-system/
 
 ## Superpowers brainstorm
 .superpowers/
+
+## Browser automation / test artifacts
+.playwright-mcp/
+**/__screenshots__/
