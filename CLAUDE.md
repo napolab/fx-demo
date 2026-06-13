@@ -45,10 +45,7 @@
 issue, .claude/rules, skills やコードが参考になる。
 
 <--- ここから --->
-
-
-
-
+<!-- private な参照リポジトリ URL はここに記載する（public リポジトリには commit しない範囲） -->
 <--- ここまで --->
 
 ### Cloudflare Durable Object を利用する際に使用できるライブラリ
