@@ -16,15 +16,16 @@ export const viewport: Viewport = {
   themeColor: '#04060a',
 };
 
-const main = css({ minHeight: '100dvh', bg: 'mask.bg' });
+const main = css({ minHeight: '100dvh', bg: 'video.floor' });
 const srOnly = css({ srOnly: true });
 const fallback = css({
   position: 'fixed',
   inset: '0',
   display: 'grid',
   placeItems: 'center',
-  bg: 'mask.bg',
-  color: 'mask.dim',
+  bg: 'video.floor',
+  color: 'fg.onSolid',
+  fontFamily: 'mono',
   fontSize: 'sm',
 });
 

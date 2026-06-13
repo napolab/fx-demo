@@ -3,7 +3,7 @@ import { css } from 'styled-system/css';
 export const root = css({
   position: 'fixed',
   inset: '0',
-  bg: 'stage.bg',
+  bg: 'video.floor',
   overflow: 'hidden',
 });
 
@@ -21,7 +21,7 @@ export const notice = css({
   placeItems: 'center',
   textAlign: 'center',
   padding: '8',
-  color: 'stage.text',
+  color: 'fg.default',
   fontSize: 'md',
   lineHeight: 'relaxed',
   pointerEvents: 'none',

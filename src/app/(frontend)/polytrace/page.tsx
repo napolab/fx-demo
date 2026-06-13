@@ -15,15 +15,16 @@ export const viewport: Viewport = {
   themeColor: '#04060a',
 };
 
-const main = css({ minHeight: '100dvh', bg: 'stage.bg' });
+const main = css({ minHeight: '100dvh', bg: 'video.floor' });
 const srOnly = css({ srOnly: true });
 const fallback = css({
   position: 'fixed',
   inset: '0',
   display: 'grid',
   placeItems: 'center',
-  bg: 'stage.bg',
-  color: 'stage.dim',
+  bg: 'video.floor',
+  color: 'fg.onSolid',
+  fontFamily: 'mono',
   fontSize: 'sm',
 });
 

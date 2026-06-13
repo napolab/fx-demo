@@ -12,20 +12,21 @@ export const root = css({
   maxHeight: 'calc(100dvh - {spacing.8})',
   overflowY: 'auto',
   padding: '4',
-  bg: 'mask.panel',
-  color: 'mask.text',
-  borderWidth: '1px',
+  bg: 'bg.canvas',
+  color: 'fg.default',
+  borderWidth: 'default',
   borderStyle: 'solid',
-  borderColor: 'mask.line',
-  borderRadius: 'lg',
+  borderColor: 'border.strong',
+  borderRadius: 'none',
   backdropFilter: 'blur(8px)',
 });
 
 export const heading = css({
+  fontFamily: 'display',
   fontSize: 'xs',
   letterSpacing: 'widest',
   textTransform: 'uppercase',
-  color: 'mask.dim',
+  color: 'fg.muted',
 });
 
 export const group = css({
@@ -35,8 +36,9 @@ export const group = css({
 });
 
 export const groupLabel = css({
+  fontFamily: 'mono',
   fontSize: 'sm',
-  color: 'mask.dim',
+  color: 'fg.muted',
 });
 
 export const toggleGroup = css({
@@ -47,18 +49,18 @@ export const toggleGroup = css({
 
 export const toggleButton = css({
   padding: '2',
-  color: 'mask.text',
+  color: 'fg.default',
   bg: 'transparent',
-  borderWidth: '1px',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'mask.line',
-  borderRadius: 'sm',
+  borderColor: 'border.default',
+  borderRadius: 'none',
+  fontFamily: 'mono',
   fontSize: 'sm',
   whiteSpace: 'nowrap',
   cursor: 'pointer',
-  '&[data-hovered]': { borderColor: 'mask.accent' },
-  '&[data-selected]': { color: 'mask.bg', bg: 'mask.accent', borderColor: 'mask.accent' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'mask.accent', outlineOffset: '2px' },
+  '&[data-hovered]': { borderColor: 'accent.solid' },
+  '&[data-selected]': { color: 'fg.onSolid', bg: 'accent.solid', borderColor: 'accent.solid' },
 });
 
 export const partGrid = css({
@@ -71,6 +73,7 @@ export const switchRoot = css({
   display: 'flex',
   alignItems: 'center',
   gap: '2',
+  fontFamily: 'mono',
   fontSize: 'sm',
   whiteSpace: 'nowrap',
   cursor: 'pointer',
@@ -81,8 +84,8 @@ export const switchIndicator = css({
   flexShrink: '0',
   width: '8',
   height: '5',
-  borderRadius: 'full',
-  bg: 'mask.line',
+  borderRadius: 'none',
+  bg: 'border.default',
   position: 'relative',
   transition: 'background 0.2s ease',
   _before: {
@@ -92,19 +95,13 @@ export const switchIndicator = css({
     left: '2px',
     width: '4',
     height: '4',
-    borderRadius: 'full',
-    bg: 'mask.text',
+    borderRadius: 'none',
+    bg: 'fg.default',
     transition: 'transform 0.2s ease',
   },
   '[data-selected] &': {
-    bg: 'mask.accent',
-    _before: { transform: 'translateX(12px)', bg: 'mask.bg' },
-  },
-  '[data-focus-visible] &': {
-    outlineWidth: '2px',
-    outlineStyle: 'solid',
-    outlineColor: 'mask.accent',
-    outlineOffset: '2px',
+    bg: 'accent.solid',
+    _before: { transform: 'translateX(12px)', bg: 'fg.onSolid' },
   },
 });
 
@@ -121,12 +118,14 @@ export const sliderHeader = css({
 });
 
 export const sliderLabel = css({
+  fontFamily: 'mono',
   fontSize: 'sm',
 });
 
 export const sliderOutput = css({
+  fontFamily: 'mono',
   fontSize: 'xs',
-  color: 'mask.dim',
+  color: 'fg.muted',
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -142,8 +141,8 @@ export const sliderTrack = css({
     right: '0',
     height: '2px',
     transform: 'translateY(-50%)',
-    bg: 'mask.line',
-    borderRadius: 'full',
+    bg: 'border.default',
+    borderRadius: 'none',
   },
 });
 
@@ -151,13 +150,12 @@ export const sliderThumb = css({
   top: '50%',
   width: '4',
   height: '4',
-  borderRadius: 'full',
-  bg: 'mask.accent',
-  borderWidth: '1px',
+  borderRadius: 'none',
+  bg: 'accent.solid',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'mask.bg',
+  borderColor: 'fg.onSolid',
   '&[data-dragging]': { transform: 'scale(1.15)' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'mask.accent', outlineOffset: '2px' },
 });
 
 export const swatchPicker = css({
@@ -169,43 +167,42 @@ export const swatchPicker = css({
 export const swatchItem = css({
   width: '7',
   height: '7',
-  borderRadius: 'sm',
+  borderRadius: 'none',
   cursor: 'pointer',
-  '&[data-selected]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'mask.accent', outlineOffset: '2px' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'mask.text', outlineOffset: '2px' },
+  '&[data-selected]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'accent.solid', outlineOffset: '2px' },
 });
 
 export const swatch = css({
   width: 'full',
   height: 'full',
-  borderRadius: 'sm',
-  borderWidth: '1px',
+  borderRadius: 'none',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'mask.line',
+  borderColor: 'border.default',
 });
 
 export const customButton = css({
   alignSelf: 'start',
   padding: '1',
   paddingInline: '3',
-  color: 'mask.text',
+  color: 'fg.default',
   bg: 'transparent',
-  borderWidth: '1px',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'mask.line',
-  borderRadius: 'sm',
+  borderColor: 'border.default',
+  borderRadius: 'none',
+  fontFamily: 'mono',
   fontSize: 'sm',
   cursor: 'pointer',
-  '&[data-hovered]': { borderColor: 'mask.accent' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'mask.accent', outlineOffset: '2px' },
+  '&[data-hovered]': { borderColor: 'accent.solid' },
 });
 
 export const popover = css({
-  bg: 'mask.panel',
-  borderWidth: '1px',
+  bg: 'bg.canvas',
+  borderWidth: 'default',
   borderStyle: 'solid',
-  borderColor: 'mask.line',
-  borderRadius: 'lg',
+  borderColor: 'border.strong',
+  borderRadius: 'none',
   backdropFilter: 'blur(8px)',
 });
 
@@ -220,16 +217,16 @@ export const dialog = css({
 export const colorArea = css({
   width: '[180px]',
   height: '[180px]',
-  borderRadius: 'md',
+  borderRadius: 'none',
 });
 
 export const colorThumb = css({
   width: '[16px]',
   height: '[16px]',
-  borderRadius: 'full',
+  borderRadius: 'none',
   borderWidth: '2px',
   borderStyle: 'solid',
-  borderColor: 'mask.text',
+  borderColor: 'fg.default',
   boxShadow: '[0 0 0 1px rgba(0,0,0,0.4)]',
 });
 
@@ -239,7 +236,7 @@ export const hueSlider = css({
 
 export const hueTrack = css({
   height: '6',
-  borderRadius: 'full',
+  borderRadius: 'none',
 });
 
 export const sourceRow = css({
@@ -252,16 +249,16 @@ export const sourceRow = css({
 export const controlButton = css({
   padding: '2',
   paddingInline: '3',
-  color: 'mask.text',
+  color: 'fg.default',
   bg: 'transparent',
-  borderWidth: '1px',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'mask.accent',
-  borderRadius: 'sm',
+  borderColor: 'accent.solid',
+  borderRadius: 'none',
+  fontFamily: 'mono',
   fontSize: 'sm',
   cursor: 'pointer',
-  '&[data-hovered]': { color: 'mask.bg', bg: 'mask.accent' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'mask.text', outlineOffset: '2px' },
+  '&[data-hovered]': { color: 'fg.onSolid', bg: 'accent.solid' },
 });
 
 export const recordButton = css({
@@ -272,25 +269,25 @@ export const recordButton = css({
   marginTop: '1',
   padding: '2',
   paddingInline: '3',
-  color: 'mask.text',
+  color: 'fg.default',
   bg: 'transparent',
-  borderWidth: '1px',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'mask.line',
-  borderRadius: 'sm',
+  borderColor: 'border.default',
+  borderRadius: 'none',
+  fontFamily: 'mono',
   fontSize: 'sm',
   fontVariantNumeric: 'tabular-nums',
   cursor: 'pointer',
   '&[data-hovered]': { borderColor: 'mask.rec' },
   '&[data-recording]': { color: 'mask.rec', borderColor: 'mask.rec' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'mask.rec', outlineOffset: '2px' },
 });
 
 export const recordDot = css({
   flexShrink: '0',
   width: '3',
   height: '3',
-  borderRadius: 'full',
-  bg: 'mask.line',
+  borderRadius: 'none',
+  bg: 'border.default',
   '[data-recording] &': { bg: 'mask.rec' },
 });

@@ -24,7 +24,7 @@ export const EffectIndex = () => (
               <p className={styles.doing}>{effect.doing}</p>
             </div>
             <span className={styles.open} aria-hidden="true">
-              開く →
+              OPEN →
             </span>
           </article>
         </li>

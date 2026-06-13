@@ -11,13 +11,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#04060a',
+  themeColor: '#eef0f3',
 };
 
 const main = css({
   minHeight: '100dvh',
-  bg: 'stage.bg',
-  color: 'stage.text',
+  bg: 'bg.canvas',
+  color: 'fg.default',
   paddingInline: '5',
   paddingBlock: '16',
   '@media (min-width: 768px)': {
@@ -38,20 +38,20 @@ const hero = css({
 
 const heroTitle = css({
   margin: '0',
-  fontSize: '4xl',
-  fontWeight: 'bold',
-  letterSpacing: 'widest',
-  lineHeight: 'tight',
-  color: 'stage.text',
-  '@media (min-width: 768px)': {
-    fontSize: '6xl',
-  },
+  fontFamily: 'display',
+  fontSize: 'display',
+  fontWeight: 'normal',
+  letterSpacing: 'tight',
+  lineHeight: 'none',
+  color: 'fg.default',
 });
 
 const heroLead = css({
-  marginBlock: '3 0',
-  fontSize: 'md',
-  color: 'stage.dim',
+  marginBlock: '4 0',
+  fontFamily: 'mono',
+  fontSize: 'sm',
+  letterSpacing: 'wide',
+  color: 'fg.muted',
 });
 
 const Home = () => (

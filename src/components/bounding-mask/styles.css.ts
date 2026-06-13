@@ -3,7 +3,7 @@ import { css } from 'styled-system/css';
 export const root = css({
   position: 'fixed',
   inset: '0',
-  bg: 'mask.bg',
+  bg: 'video.floor',
   overflow: 'hidden',
 });
 
@@ -20,7 +20,7 @@ export const cameraPrompt = css({
   display: 'grid',
   gap: '2',
   justifyItems: 'start',
-  color: 'mask.dim',
+  color: 'fg.muted',
   fontSize: 'sm',
   textAlign: 'left',
 });
@@ -28,16 +28,16 @@ export const cameraPrompt = css({
 export const controlButton = css({
   padding: '2',
   paddingInline: '4',
-  color: 'mask.text',
+  color: 'fg.default',
   bg: 'transparent',
-  borderWidth: '1px',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'mask.accent',
-  borderRadius: 'sm',
+  borderColor: 'accent.solid',
+  borderRadius: 'none',
+  fontFamily: 'mono',
   fontSize: 'sm',
   cursor: 'pointer',
-  '&[data-hovered]': { color: 'mask.bg', bg: 'mask.accent' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'mask.line', outlineOffset: '2px' },
+  '&[data-hovered]': { color: 'fg.onSolid', bg: 'accent.solid' },
 });
 
 export const hint = css({
@@ -45,7 +45,7 @@ export const hint = css({
   bottom: '5',
   left: '50%',
   transform: 'translateX(-50%)',
-  color: 'mask.dim',
+  color: 'fg.subtle',
   fontSize: 'sm',
   letterSpacing: 'wide',
   whiteSpace: 'nowrap',

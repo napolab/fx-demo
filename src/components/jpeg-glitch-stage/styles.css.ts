@@ -5,7 +5,7 @@ import { css } from 'styled-system/css';
 // layout lives one level down on `layoutRoot`.
 export const root = css({
   height: '100dvh',
-  bg: 'stage.bg',
+  bg: 'video.floor',
   containerType: 'inline-size',
 });
 
@@ -40,10 +40,11 @@ export const notice = css({
   maxWidth: '[80%]',
   paddingX: '4',
   paddingY: '2',
-  borderRadius: 'lg',
-  bg: 'stage.panel',
+  borderRadius: 'none',
+  bg: 'bg.canvas',
   fontSize: 'sm',
+  fontFamily: 'mono',
   textAlign: 'center',
-  color: 'stage.text',
-  '&[data-tone="soft"]': { color: 'stage.dim' },
+  color: 'fg.default',
+  '&[data-tone="soft"]': { color: 'fg.muted' },
 });

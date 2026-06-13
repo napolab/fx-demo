@@ -10,12 +10,12 @@ export const root = css({
   width: '72',
   maxWidth: 'calc(100vw - {spacing.8})',
   padding: '4',
-  bg: 'stage.panel',
-  color: 'stage.text',
-  borderWidth: '1px',
+  bg: 'bg.canvas',
+  color: 'fg.default',
+  borderWidth: 'default',
   borderStyle: 'solid',
-  borderColor: 'stage.line',
-  borderRadius: 'lg',
+  borderColor: 'border.strong',
+  borderRadius: 'none',
   backdropFilter: 'blur(8px)',
 });
 
@@ -23,7 +23,8 @@ export const heading = css({
   fontSize: 'xs',
   letterSpacing: 'widest',
   textTransform: 'uppercase',
-  color: 'stage.dim',
+  fontFamily: 'display',
+  color: 'fg.muted',
 });
 
 export const slider = css({
@@ -40,11 +41,13 @@ export const sliderHeader = css({
 
 export const sliderLabel = css({
   fontSize: 'sm',
+  fontFamily: 'mono',
 });
 
 export const sliderOutput = css({
   fontSize: 'xs',
-  color: 'stage.dim',
+  color: 'fg.muted',
+  fontFamily: 'mono',
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -60,8 +63,8 @@ export const sliderTrack = css({
     right: '0',
     height: '2px',
     transform: 'translateY(-50%)',
-    bg: 'stage.line',
-    borderRadius: 'full',
+    bg: 'border.default',
+    borderRadius: 'none',
   },
 });
 
@@ -69,18 +72,12 @@ export const sliderThumb = css({
   top: '50%',
   width: '4',
   height: '4',
-  borderRadius: 'full',
-  bg: 'stage.accent',
-  borderWidth: '1px',
+  borderRadius: 'none',
+  bg: 'accent.solid',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'stage.bg',
+  borderColor: 'border.default',
   '&[data-dragging]': { transform: 'scale(1.15)' },
-  '&[data-focus-visible]': {
-    outlineWidth: '2px',
-    outlineStyle: 'solid',
-    outlineColor: 'stage.accent',
-    outlineOffset: '2px',
-  },
 });
 
 export const switchRow = css({
@@ -94,6 +91,7 @@ export const switchRoot = css({
   alignItems: 'center',
   gap: '2',
   fontSize: 'sm',
+  fontFamily: 'mono',
   cursor: 'pointer',
 });
 
@@ -101,8 +99,8 @@ export const switchIndicator = css({
   display: 'inline-block',
   width: '8',
   height: '5',
-  borderRadius: 'full',
-  bg: 'stage.line',
+  borderRadius: 'none',
+  bg: 'border.default',
   position: 'relative',
   transition: 'background 0.2s ease',
   _before: {
@@ -112,18 +110,12 @@ export const switchIndicator = css({
     left: '2px',
     width: '4',
     height: '4',
-    borderRadius: 'full',
-    bg: 'stage.text',
+    borderRadius: 'none',
+    bg: 'fg.default',
     transition: 'transform 0.2s ease',
   },
   '[data-selected] &': {
-    bg: 'stage.accent',
-    _before: { transform: 'translateX(12px)', bg: 'stage.bg' },
-  },
-  '[data-focus-visible] &': {
-    outlineWidth: '2px',
-    outlineStyle: 'solid',
-    outlineColor: 'stage.accent',
-    outlineOffset: '2px',
+    bg: 'accent.solid',
+    _before: { transform: 'translateX(12px)', bg: 'fg.onSolid' },
   },
 });

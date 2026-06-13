@@ -9,6 +9,9 @@ export const root = css({
   listStyle: 'none',
   margin: '0',
   padding: '0',
+  borderTopWidth: 'hairline',
+  borderTopStyle: 'solid',
+  borderTopColor: 'border.default',
 });
 
 export const item = css({
@@ -22,12 +25,12 @@ export const card = css({
   alignItems: 'flex-start',
   gap: '3',
   paddingBlock: '6',
-  borderBottomWidth: '1px',
+  borderBottomWidth: 'hairline',
   borderBottomStyle: 'solid',
-  borderBottomColor: 'stage.line',
-  transition: 'background-color 0.2s ease',
+  borderBottomColor: 'border.default',
+  transition: 'background-color 0.18s ease',
   '&:hover': {
-    bg: 'rgba(124, 217, 255, 0.04)',
+    bg: 'bg.subtle',
   },
   '@container (min-width: 600px)': {
     flexDirection: 'row',
@@ -39,13 +42,14 @@ export const card = css({
 
 export const no = css({
   flexShrink: '0',
-  fontSize: '2xl',
+  fontFamily: 'mono',
+  fontSize: 'xl',
   fontWeight: 'bold',
   fontVariantNumeric: 'tabular-nums',
   letterSpacing: 'wide',
-  color: 'stage.dim',
+  color: 'fg.subtle',
   '@container (min-width: 600px)': {
-    fontSize: '3xl',
+    fontSize: 'h2',
     width: '12',
     textAlign: 'right',
   },
@@ -56,11 +60,11 @@ export const thumb = css({
   width: '100%',
   aspectRatio: '16 / 10',
   objectFit: 'cover',
-  borderRadius: 'md',
-  borderWidth: '1px',
+  borderRadius: 'none',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'stage.line',
-  bg: 'stage.bg',
+  borderColor: 'border.default',
+  bg: 'video.floor',
   '@container (min-width: 600px)': {
     width: '52',
     flexShrink: '0',
@@ -77,52 +81,53 @@ export const body = css({
 
 export const title = css({
   margin: '0',
+  fontFamily: 'display',
   fontSize: 'xl',
   fontWeight: 'semibold',
+  letterSpacing: 'tight',
   lineHeight: 'tight',
-  color: 'stage.text',
+  color: 'fg.default',
 });
 
-// stretched link: covers the whole card so the entire row is clickable,
-// while the accessible name stays the effect name only.
+// stretched link: covers the whole card so the entire row is clickable, while
+// the accessible name stays the effect name only. The hit-area uses ::before so
+// the global marching-ants focus ring (drawn on ::after) doesn't collide; both
+// anchor to the positioned card.
 export const link = css({
-  color: 'stage.text',
+  color: 'fg.default',
   textDecoration: 'none',
   outline: 'none',
-  '&::after': {
+  '&::before': {
     content: '""',
     position: 'absolute',
     inset: '0',
-    borderRadius: 'md',
   },
   '&[data-hovered]': {
-    color: 'stage.accent',
-  },
-  '&[data-focus-visible]::after': {
-    outlineWidth: '2px',
-    outlineStyle: 'solid',
-    outlineColor: 'stage.accent',
-    outlineOffset: '2px',
+    color: 'accent.text',
   },
 });
 
 export const tagline = css({
   margin: '0',
   fontSize: 'sm',
-  color: 'stage.text',
+  color: 'fg.muted',
 });
 
 export const doing = css({
   margin: '0',
-  fontSize: 'sm',
-  lineHeight: 'relaxed',
-  color: 'stage.dim',
+  fontFamily: 'mono',
+  fontSize: 'xs',
+  lineHeight: 'body',
+  color: 'fg.subtle',
 });
 
 export const open = css({
   flexShrink: '0',
-  fontSize: 'sm',
-  color: 'stage.dim',
+  fontFamily: 'mono',
+  fontSize: 'xs',
+  letterSpacing: 'wide',
+  textTransform: 'uppercase',
+  color: 'fg.subtle',
   '@container (min-width: 600px)': {
     alignSelf: 'center',
   },

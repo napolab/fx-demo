@@ -10,12 +10,12 @@ export const root = css({
   gap: '3',
   padding: '3',
   paddingInline: '4',
-  bg: 'mask.panel',
-  color: 'mask.text',
-  borderWidth: '1px',
+  bg: 'bg.canvas',
+  color: 'fg.default',
+  borderWidth: 'default',
   borderStyle: 'solid',
-  borderColor: 'mask.line',
-  borderRadius: 'lg',
+  borderColor: 'border.strong',
+  borderRadius: 'none',
   backdropFilter: 'blur(8px)',
 });
 
@@ -25,16 +25,16 @@ export const playButton = css({
   placeItems: 'center',
   width: '8',
   height: '8',
-  color: 'mask.text',
+  color: 'fg.default',
   bg: 'transparent',
-  borderWidth: '1px',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'mask.line',
-  borderRadius: 'full',
+  borderColor: 'border.default',
+  borderRadius: 'none',
+  fontFamily: 'mono',
   fontSize: 'sm',
   cursor: 'pointer',
-  '&[data-hovered]': { color: 'mask.bg', bg: 'mask.accent', borderColor: 'mask.accent' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'mask.accent', outlineOffset: '2px' },
+  '&[data-hovered]': { color: 'fg.onSolid', bg: 'accent.solid', borderColor: 'accent.solid' },
 });
 
 export const slider = css({
@@ -57,8 +57,8 @@ export const track = css({
     right: '0',
     height: '2px',
     transform: 'translateY(-50%)',
-    bg: 'mask.line',
-    borderRadius: 'full',
+    bg: 'border.default',
+    borderRadius: 'none',
   },
 });
 
@@ -66,19 +66,19 @@ export const thumb = css({
   top: '50%',
   width: '4',
   height: '4',
-  borderRadius: 'full',
-  bg: 'mask.accent',
-  borderWidth: '1px',
+  borderRadius: 'none',
+  bg: 'accent.solid',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'mask.bg',
+  borderColor: 'fg.onSolid',
   '&[data-dragging]': { transform: 'scale(1.15)' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'mask.accent', outlineOffset: '2px' },
 });
 
 export const time = css({
   flexShrink: '0',
+  fontFamily: 'mono',
   fontSize: 'sm',
-  color: 'mask.dim',
+  color: 'fg.muted',
   fontVariantNumeric: 'tabular-nums',
   whiteSpace: 'nowrap',
 });

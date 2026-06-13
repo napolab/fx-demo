@@ -105,7 +105,6 @@ export const sliderThumb = css({
   bg: 'trace.line',
   cursor: 'pointer',
   '&[data-dragging]': { bg: 'trace.text' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'trace.line', outlineOffset: '2px' },
 });
 
 export const controlButton = css({
@@ -120,8 +119,7 @@ export const controlButton = css({
   fontSize: 'sm',
   fontFamily: 'mono',
   cursor: 'pointer',
-  '&[data-hovered]': { color: 'trace.bg', bg: 'trace.hud' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'trace.line', outlineOffset: '2px' },
+  '&[data-hovered]': { color: 'trace.labelText', bg: 'trace.hud' },
 });
 
 // Mode toggle (face censor). Mirrors controlButton, lit when selected so the
@@ -138,9 +136,8 @@ export const maskToggle = css({
   fontSize: 'sm',
   fontFamily: 'mono',
   cursor: 'pointer',
-  '&[data-hovered]': { color: 'trace.bg', bg: 'trace.hud' },
-  '&[data-selected]': { color: 'trace.bg', bg: 'trace.hud' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'trace.line', outlineOffset: '2px' },
+  '&[data-hovered]': { color: 'trace.labelText', bg: 'trace.hud' },
+  '&[data-selected]': { color: 'trace.labelText', bg: 'trace.hud' },
 });
 
 // Record button. Mirrors controlButton; lit with the marker red while a
@@ -157,9 +154,8 @@ export const recordButton = css({
   fontSize: 'sm',
   fontFamily: 'mono',
   cursor: 'pointer',
-  '&[data-hovered]': { color: 'trace.bg', bg: 'trace.hud' },
-  '&[data-recording]': { color: 'trace.bg', bg: 'trace.marker', borderColor: 'trace.marker' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'trace.line', outlineOffset: '2px' },
+  '&[data-hovered]': { color: 'trace.labelText', bg: 'trace.hud' },
+  '&[data-recording]': { color: 'trace.labelText', bg: 'trace.marker', borderColor: 'trace.marker' },
 });
 
 export const cameraPrompt = css({

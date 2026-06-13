@@ -7,11 +7,12 @@ export const root = css({
   padding: '5',
   width: '[240px]',
   flexShrink: 0,
-  bg: 'stage.panel',
-  borderRightWidth: '1px',
+  bg: 'bg.canvas',
+  borderRightWidth: 'default',
   borderRightStyle: 'solid',
-  borderRightColor: 'stage.line',
-  color: 'stage.text',
+  borderRightColor: 'border.strong',
+  color: 'fg.default',
+  fontFamily: 'mono',
   overflowY: 'auto',
 });
 
@@ -20,52 +21,52 @@ export const headerRoot = css({
   flexDirection: 'column',
   gap: '1',
   paddingBottom: '3',
-  borderBottomWidth: '1px',
+  borderBottomWidth: 'hairline',
   borderBottomStyle: 'solid',
-  borderBottomColor: 'stage.line',
+  borderBottomColor: 'border.default',
 });
 
-export const title = css({ fontSize: 'sm', fontWeight: 'bold', letterSpacing: 'wider' });
+export const title = css({ fontSize: 'sm', fontWeight: 'bold', letterSpacing: 'wider', fontFamily: 'display' });
 
-export const subtitle = css({ fontSize: 'xs', color: 'stage.dim' });
+export const subtitle = css({ fontSize: 'xs', color: 'fg.muted', fontFamily: 'mono' });
 
 export const sectionTitle = css({
   fontSize: 'xs',
-  color: 'stage.accent',
+  color: 'accent.text',
+  fontFamily: 'mono',
   letterSpacing: 'widest',
   textTransform: 'uppercase',
   marginTop: '2',
   paddingBottom: '1',
-  borderBottomWidth: '1px',
+  borderBottomWidth: 'hairline',
   borderBottomStyle: 'solid',
-  borderBottomColor: 'stage.line',
+  borderBottomColor: 'border.default',
 });
 
 export const slider = css({ display: 'flex', flexDirection: 'column', gap: '2', width: '[100%]' });
 
 export const sliderHeader = css({ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' });
 
-export const sliderLabel = css({ display: 'block', fontSize: 'xs', color: 'stage.dim', letterSpacing: 'wide', textTransform: 'uppercase' });
+export const sliderLabel = css({ display: 'block', fontSize: 'xs', color: 'fg.muted', fontFamily: 'mono', letterSpacing: 'wide', textTransform: 'uppercase' });
 
-export const sliderValue = css({ fontSize: 'xs', color: 'stage.text', fontVariantNumeric: 'tabular-nums' });
+export const sliderValue = css({ fontSize: 'xs', color: 'fg.default', fontFamily: 'mono', fontVariantNumeric: 'tabular-nums' });
 
 export const sliderTrack = css({
   position: 'relative',
   height: '[4px]',
   width: '[100%]',
-  borderRadius: 'full',
-  bg: 'stage.line',
+  borderRadius: 'none',
+  bg: 'border.default',
 });
 
 export const sliderThumb = css({
   width: '[14px]',
   height: '[14px]',
-  borderRadius: 'full',
-  bg: 'stage.accent',
+  borderRadius: 'none',
+  bg: 'accent.solid',
   top: '[50%]',
   cursor: 'grab',
   '&[data-dragging]': { cursor: 'grabbing' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'stage.accent', outlineOffset: '2px' },
 });
 
 export const toggle = css({
@@ -73,22 +74,22 @@ export const toggle = css({
   alignItems: 'center',
   gap: '2',
   fontSize: 'xs',
-  color: 'stage.text',
+  color: 'fg.default',
+  fontFamily: 'mono',
   letterSpacing: 'wide',
   textTransform: 'uppercase',
   cursor: 'pointer',
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'stage.accent', outlineOffset: '2px' },
 });
 
 export const toggleBox = css({
   width: '[14px]',
   height: '[14px]',
-  borderRadius: 'sm',
-  borderWidth: '1px',
+  borderRadius: 'none',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'stage.line',
+  borderColor: 'border.default',
   flexShrink: 0,
-  '&[data-selected]': { bg: 'stage.accent', borderColor: 'stage.accent' },
+  '&[data-selected]': { bg: 'accent.solid', borderColor: 'accent.solid' },
 });
 
 export const radioGroup = css({ display: 'flex', flexDirection: 'column', gap: '2' });
@@ -100,15 +101,15 @@ export const radio = css({
   position: 'relative',
   textAlign: 'center',
   fontSize: 'xs',
+  fontFamily: 'mono',
   paddingY: '1.5',
-  borderRadius: 'md',
-  borderWidth: '1px',
+  borderRadius: 'none',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'stage.line',
-  color: 'stage.dim',
+  borderColor: 'border.default',
+  color: 'fg.muted',
   cursor: 'pointer',
-  '&[data-selected]': { borderColor: 'stage.accent', color: 'stage.text', bg: '[rgba(124, 217, 255, 0.12)]' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'stage.accent', outlineOffset: '2px' },
+  '&[data-selected]': { borderColor: 'accent.border', color: 'fg.default', bg: 'blue.2' },
 });
 
 export const seedRow = css({ display: 'flex', alignItems: 'flex-end', gap: '2' });
@@ -117,13 +118,13 @@ export const seedButton = css({
   flexShrink: 0,
   width: '[32px]',
   height: '[32px]',
-  borderRadius: 'md',
-  borderWidth: '1px',
+  borderRadius: 'none',
+  borderWidth: 'hairline',
   borderStyle: 'solid',
-  borderColor: 'stage.line',
-  color: 'stage.text',
+  borderColor: 'border.default',
+  color: 'fg.default',
+  fontFamily: 'mono',
   bg: 'transparent',
   cursor: 'pointer',
-  '&[data-hovered]': { borderColor: 'stage.accent' },
-  '&[data-focus-visible]': { outlineWidth: '2px', outlineStyle: 'solid', outlineColor: 'stage.accent', outlineOffset: '2px' },
+  '&[data-hovered]': { borderColor: 'accent.border' },
 });
