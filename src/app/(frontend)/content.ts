@@ -18,7 +18,7 @@ export const effects = [
     tagline: 'WebGPU/WGSL の stable-fluids が webcam を液体の鏡に変える。',
     doing: 'webcam 映像が液体になり、ポインタのドラッグで自由に攪拌して絹のような渦を起こせる。',
     thumb: '/thumbs/liquid-mirror.jpg',
-    thumbAlt: '暗闇に渦巻く墨のような流体のテクスチャ',
+    thumbAlt: 'VRChat の情景が液体に溶け、翡翠と銀の渦を描くサムネイル',
   },
   {
     no: '02',
@@ -27,7 +27,7 @@ export const effects = [
     tagline: 'After Effects の JPEG Glitch を WebGPU 上の実コーデックで再現する。',
     doing: 'YCbCr 変換・8×8 DCT・量子化を実際に通し、係数破壊のパラメータでコーデックの壊れ方をライブ制御できる。',
     thumb: '/thumbs/jpeg-glitch.jpg',
-    thumbAlt: '色がにじむ JPEG ブロックノイズのテクスチャ',
+    thumbAlt: 'アバター milfy の顔が JPEG コーデックの破壊で断片化したサムネイル',
   },
   {
     no: '03',
@@ -36,6 +36,6 @@ export const effects = [
     tagline: '身体輪郭をモノクロのワイヤーフレームでトレースする p5.js × WebGPU の FX。',
     doing: 'カメラに映る身体の輪郭がワイヤーフレーム化され、残像とトラッキング HUD の重なりを楽しめる。',
     thumb: '/thumbs/trace.jpg',
-    thumbAlt: '白い輪郭線が重なるワイヤーフレームのテクスチャ',
+    thumbAlt: 'アバター milfy の輪郭がワイヤーフレームでトレースされたサムネイル',
   },
 ] satisfies readonly EffectEntry[];
