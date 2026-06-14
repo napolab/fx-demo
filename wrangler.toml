@@ -1,5 +1,9 @@
 main = ".open-next/worker.js"
 name = "fx-demo"
+# napochaan account — holds the napochaan.com zone for the fx-demo.napochaan.com
+# custom domain below. Pinned so deploys work non-interactively when the auth token
+# can see multiple Cloudflare accounts.
+account_id = "cda8b0a2b410e1ff3a5bcc72c7e46f72"
 compatibility_date = "2025-08-15"
 compatibility_flags = [
   # Enable Node.js API
