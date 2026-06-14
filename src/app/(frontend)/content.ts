@@ -8,8 +8,7 @@ export type EffectEntry = {
   thumbAlt: string;
 };
 
-// main にマージ済みの FX のみを掲載する。PolyTrace / Bounding Mask は
-// それぞれのブランチが main にマージされた時点でここへ追記する。
+// main にマージ済みの 5 つの camera FX を掲載する。
 export const effects = [
   {
     no: '01',
@@ -37,5 +36,23 @@ export const effects = [
     doing: 'カメラに映る身体の輪郭がワイヤーフレーム化され、残像とトラッキング HUD の重なりを楽しめる。',
     thumb: '/thumbs/trace.jpg',
     thumbAlt: 'アバター milfy の輪郭がワイヤーフレームでトレースされたサムネイル',
+  },
+  {
+    no: '04',
+    name: 'PolyTrace',
+    href: '/polytrace',
+    tagline: 'After Effects の Polytrace を WGSL の特徴点抽出で再現する。',
+    doing: 'カメラ映像が Delaunay 三角形のローポリメッシュになり、点の数やノイズで質感をライブ制御できる。',
+    thumb: '/thumbs/polytrace.jpg',
+    thumbAlt: 'アバター alice の顔がローポリ三角形メッシュでトレースされたサムネイル',
+  },
+  {
+    no: '05',
+    name: 'Bounding Mask',
+    href: '/bounding-mask',
+    tagline: 'MediaPipe のポーズ検出で身体部位を単色マスクで覆う FX。',
+    doing: '顔・手・腰・脚を検出し、選んだ部位をボックス／シルエットの単色マスクでリアルタイムに覆える。',
+    thumb: '/thumbs/bounding-mask.jpg',
+    thumbAlt: 'アバター alice の頭部がシアンの単色マスクで覆われたサムネイル',
   },
 ] satisfies readonly EffectEntry[];
